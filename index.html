@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CINEMA PREMIUM - Cartelera de Cine</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">CINEMA</a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html" class="active">Inicio</a></li>
+      <li><a href="cartelera.html">Cartelera</a></li>
+      <li><a href="mis-entradas.html">Mis Entradas</a></li>
+      <li><a href="mi-lista.html">Mi Lista</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div id="nav-user-area"></div>
+      <button class="nav-mobile-toggle">&#9776;</button>
+    </div>
+  </nav>
+
+  <section class="hero" id="hero">
+    <div class="hero-bg" id="hero-bg"></div>
+    <div class="hero-content" id="hero-content">
+      <div class="loading-spinner" style="padding:2rem">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">En Cartelera</h2>
+          <p class="section-subtitle">Las películas que puedes ver ahora</p>
+        </div>
+        <a href="cartelera.html" class="view-all">Ver todas →</a>
+      </div>
+      <div class="movie-grid" id="now-playing-grid">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Próximamente</h2>
+          <p class="section-subtitle">No te pierdas estos estrenos</p>
+        </div>
+      </div>
+      <div class="movie-grid" id="upcoming-grid">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Populares</h2>
+          <p class="section-subtitle">Las más vistas de la semana</p>
+        </div>
+      </div>
+      <div class="movie-grid" id="popular-grid">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Mejor Valoradas</h2>
+          <p class="section-subtitle">Las favoritas de la crítica</p>
+        </div>
+      </div>
+      <div class="movie-grid" id="toprated-grid">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="padding:2rem;text-align:center;color:var(--on-background-dim);font-size:0.8rem;border-top:1px solid rgba(255,255,255,0.05);margin-top:2rem;">
+    <p>&copy; 2026 CINEMA PREMIUM. Todos los derechos reservados.</p>
+  </footer>
+<script src="js/api.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/tmdb.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    Auth.init();
+    updateNavAuth();
+    setupMobileNav();
+    setupNavbarScroll();
+
+    async function loadHome() {
+      try {
+        const [trending, nowPlaying, upcoming, popular, topRated] = await Promise.all([
+          TMDB.getTrending(),
+          TMDB.getNowPlaying(),
+          TMDB.getUpcoming(),
+          TMDB.getPopular(),
+          TMDB.getTopRated()
+        ]);
+
+        // Hero
+        if (trending.results && trending.results.length > 0) {
+          const featured = trending.results[Math.floor(Math.random() * Math.min(5, trending.results.length))];
+          renderHero(featured);
+        }
+
+        // Grids
+        renderGrid('now-playing-grid', nowPlaying.results || []);
+        renderGrid('upcoming-grid', upcoming.results || []);
+        renderGrid('popular-grid', popular.results || []);
+        renderGrid('toprated-grid', topRated.results || []);
+
+      } catch (err) {
+        console.error('Home load error:', err);
+        document.querySelectorAll('.movie-grid').forEach(g => {
+          g.innerHTML = renderEmptyState('Error al cargar películas');
+        });
+      }
+    }
+
+    function renderHero(movie) {
+      const backdrop = TMDB.getBackdropURL(movie.backdrop_path);
+      const title = movie.title || 'Sin título';
+      const rating = TMDB.formatRating(movie.vote_average);
+      const year = movie.release_date ? new Date(movie.release_date).getFullYear() : '';
+      const genres = movie.genre_ids ? movie.genre_ids.slice(0, 3) : [];
+      const desc = movie.overview || 'Sin descripción disponible';
+
+      const genreNames = {
+        28:'Acción',12:'Aventura',16:'Animación',35:'Comedia',80:'Crimen',
+        99:'Documental',18:'Drama',10751:'Familiar',14:'Fantasía',36:'Historia',
+        27:'Terror',10402:'Música',9648:'Misterio',10749:'Romance',878:'Ciencia Ficción',
+        10770:'TV Movie',53:'Suspense',10752:'Bélico',37:'Western'
+      };
+
+      document.getElementById('hero-bg').style.backgroundImage = `url(${backdrop})`;
+      document.getElementById('hero-content').innerHTML = `
+        <span class="hero-tag">Destacada</span>
+        <h1 class="hero-title">${title}</h1>
+        <div class="hero-meta">
+          <span class="hero-rating">★ ${rating}</span>
+          <div class="hero-info">
+            <span>${year}</span>
+          </div>
+        </div>
+        <div class="hero-genres">
+          ${genres.map(g => `<span class="genre-tag">${genreNames[g] || 'Género'}</span>`).join('')}
+        </div>
+        <p class="hero-desc">${desc}</p>
+        <div class="hero-actions">
+          <a href="pelicula.html?id=${movie.id}" class="btn btn-primary">Comprar Entradas</a>
+          <a href="pelicula.html?id=${movie.id}" class="btn btn-secondary">Ver Detalles</a>
+        </div>
+      `;
+    }
+
+    function renderGrid(containerId, movies) {
+      const container = document.getElementById(containerId);
+      if (!movies.length) {
+        container.innerHTML = renderEmptyState('No hay películas disponibles');
+        return;
+      }
+      container.innerHTML = movies.slice(0, 12).map(m => renderMovieCard(m)).join('');
+    }
+
+    loadHome();
+  </script>
+</body>
+</html>

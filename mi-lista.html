@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Lista - CINEMA PREMIUM</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">CINEMA</a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="cartelera.html">Cartelera</a></li>
+      <li><a href="mis-entradas.html">Mis Entradas</a></li>
+      <li><a href="mi-lista.html" class="active">Mi Lista</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div id="nav-user-area"></div>
+      <button class="nav-mobile-toggle">&#9776;</button>
+    </div>
+  </nav>
+
+  <main class="page-content">
+    <div class="container">
+      <div class="section-header" style="padding-top:2rem">
+        <div>
+          <h2 class="section-title">Mi Lista</h2>
+          <p class="section-subtitle">Películas que guardaste</p>
+        </div>
+      </div>
+
+      <div class="movie-grid" id="favorites-grid">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <footer style="padding:2rem;text-align:center;color:var(--on-background-dim);font-size:0.8rem;border-top:1px solid rgba(255,255,255,0.05);">
+    <p>&copy; 2026 CINEMA PREMIUM. Todos los derechos reservados.</p>
+  </footer>
+<script src="js/api.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/tmdb.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    Auth.init();
+    updateNavAuth();
+    setupMobileNav();
+    setupNavbarScroll();
+
+    if (!Auth.isLoggedIn()) {
+      window.location.href = 'login.html?redirect=mi-lista.html';
+    }
+
+    async function loadFavorites() {
+      try {
+        const favorites = await API.getFavorites(Auth.getUserId());
+        const grid = document.getElementById('favorites-grid');
+
+        if (!favorites.length) {
+          grid.innerHTML = renderEmptyState('Tu lista está vacía. Agrega películas desde su página de detalles.', '❤️');
+          return;
+        }
+
+        let html = '';
+        for (const fav of favorites) {
+          try {
+            const movie = await TMDB.getMovieDetails(fav.movieId);
+            html += renderMovieCard(movie);
+          } catch {}
+        }
+        grid.innerHTML = html || renderEmptyState('Error al cargar las películas');
+      } catch (err) {
+        document.getElementById('favorites-grid').innerHTML = renderEmptyState('Error al cargar tu lista');
+      }
+    }
+
+    loadFavorites();
+  </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Juan Perez",
+      "email": "juan@email.com",
+      "password": "123456",
+      "role": "user",
+      "createdAt": "2026-08-20T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Maria Garcia",
+      "email": "maria@email.com",
+      "password": "123456",
+      "role": "admin",
+      "createdAt": "2026-08-20T10:00:00Z"
+    }
+  ],
+  "rooms": [
+    { "id": 1, "name": "Sala 1", "capacity": 48, "type": "standard" },
+    { "id": 2, "name": "Sala 2", "capacity": 48, "type": "standard" },
+    { "id": 3, "name": "Sala 3", "capacity": 48, "type": "3D" },
+    { "id": 4, "name": "Sala 4 VIP", "capacity": 36, "type": "VIP" }
+  ],
+  "functions": [
+    { "id": 1, "movieId": 550, "roomId": 1, "date": "2026-08-25", "time": "18:30", "price": 12000 },
+    { "id": 2, "movieId": 550, "roomId": 2, "date": "2026-08-25", "time": "21:00", "price": 12000 },
+    { "id": 3, "movieId": 680, "roomId": 3, "date": "2026-08-25", "time": "19:00", "price": 15000 },
+    { "id": 4, "movieId": 680, "roomId": 1, "date": "2026-08-26", "time": "16:00", "price": 12000 },
+    { "id": 5, "movieId": 27205, "roomId": 4, "date": "2026-08-25", "time": "20:00", "price": 22000 },
+    { "id": 6, "movieId": 27205, "roomId": 3, "date": "2026-08-26", "time": "15:00", "price": 15000 },
+    { "id": 7, "movieId": 155, "roomId": 2, "date": "2026-08-25", "time": "17:30", "price": 12000 },
+    { "id": 8, "movieId": 155, "roomId": 4, "date": "2026-08-26", "time": "21:30", "price": 22000 },
+    { "id": 9, "movieId": 299534, "roomId": 1, "date": "2026-08-27", "time": "19:00", "price": 12000 },
+    { "id": 10, "movieId": 299534, "roomId": 3, "date": "2026-08-27", "time": "21:30", "price": 15000 }
+  ],
+  "ratings": [
+    { "id": 1, "userId": 1, "movieId": 550, "rating": 5, "comment": "Una obra maestra del cine.", "createdAt": "2026-08-21T12:00:00Z" },
+    { "id": 2, "userId": 1, "movieId": 27205, "rating": 4, "comment": "Visualmente impresionante.", "createdAt": "2026-08-22T10:00:00Z" }
+  ],
+  "favorites": [
+    { "id": 1, "userId": 1, "movieId": 550, "createdAt": "2026-08-21T08:00:00Z" },
+    { "id": 2, "userId": 1, "movieId": 27205, "createdAt": "2026-08-22T10:30:00Z" }
+  ]
+}

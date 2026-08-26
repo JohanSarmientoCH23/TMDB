@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout - CINEMA PREMIUM</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">CINEMA</a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="cartelera.html">Cartelera</a></li>
+      <li><a href="mis-entradas.html">Mis Entradas</a></li>
+      <li><a href="mi-lista.html">Mi Lista</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div id="nav-user-area"></div>
+      <button class="nav-mobile-toggle">&#9776;</button>
+    </div>
+  </nav>
+
+  <main class="page-content">
+    <div class="container">
+      <div id="checkout-content">
+        <div class="loading-spinner" style="padding:4rem"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <footer style="padding:2rem;text-align:center;color:var(--on-background-dim);font-size:0.8rem;border-top:1px solid rgba(255,255,255,0.05);">
+    <p>&copy; 2026 CINEMA PREMIUM. Todos los derechos reservados.</p>
+  </footer>
+<script src="js/api.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/tmdb.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    Auth.init();
+    updateNavAuth();
+    setupMobileNav();
+    setupNavbarScroll();
+
+    const checkoutData = JSON.parse(sessionStorage.getItem('cinema_checkout'));
+
+    function loadCheckout() {
+      if (!checkoutData) {
+        document.getElementById('checkout-content').innerHTML = renderEmptyState('No hay datos de compra. Selecciona asientos primero.');
+        return;
+      }
+
+      const user = Auth.getUser();
+
+      document.getElementById('checkout-content').innerHTML = `
+        <div class="section-header" style="padding-top:2rem">
+          <div>
+            <h2 class="section-title">Finalizar Compra</h2>
+            <p class="section-subtitle">Completa los datos para tu compra</p>
+          </div>
+        </div>
+
+        <div class="checkout-container">
+          <div class="checkout-form">
+            <h2>Datos de Compra</h2>
+            <div class="form-group">
+              <label>Nombre completo</label>
+              <input type="text" id="buyer-name" value="${user ? user.name : ''}" placeholder="Tu nombre">
+            </div>
+            <div class="form-group">
+              <label>Correo electrónico</label>
+              <input type="email" id="buyer-email" value="${user ? user.email : ''}" placeholder="tu@email.com">
+            </div>
+            <div class="form-group">
+              <label>Método de pago</label>
+              <select id="payment-method">
+                <option value="credit_card">Tarjeta de Crédito</option>
+                <option value="debit_card">Tarjeta de Débito</option>
+                <option value="cash">Efectivo</option>
+              </select>
+            </div>
+            <div id="card-fields">
+              <div class="form-group">
+                <label>Número de tarjeta</label>
+                <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Fecha de expiración</label>
+                  <input type="text" id="card-expiry" placeholder="MM/AA" maxlength="5">
+                </div>
+                <div class="form-group">
+                  <label>CVV</label>
+                  <input type="text" id="card-cvv" placeholder="123" maxlength="4">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="purchase-summary">
+            <h3>Resumen</h3>
+            <div class="summary-row"><span class="summary-label">Película</span><span>${checkoutData.movieTitle}</span></div>
+            <div class="summary-row"><span class="summary-label">Fecha</span><span>${formatDate(checkoutData.date)}</span></div>
+            <div class="summary-row"><span class="summary-label">Hora</span><span>${checkoutData.time}</span></div>
+            <div class="summary-row"><span class="summary-label">Sala</span><span>${checkoutData.roomName}</span></div>
+            <div class="summary-row">
+              <span class="summary-label">Asientos</span>
+              <span>${checkoutData.seats.length}</span>
+            </div>
+            <div class="selected-seats-list">
+              ${checkoutData.seats.map(s => `<span class="seat-tag">${s.seatCode}</span>`).join('')}
+            </div>
+            <div class="summary-row"><span class="summary-label">Precio unitario</span><span>${formatCurrency(checkoutData.price)}</span></div>
+            <div class="summary-row total"><span>Total</span><span>${formatCurrency(checkoutData.total)}</span></div>
+            <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:1.5rem" onclick="processPurchase()">Comprar</button>
+            <p style="text-align:center;font-size:0.75rem;color:var(--on-background-dim);margin-top:0.8rem">Compra simulada - No se realiza cobro real</p>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('payment-method').addEventListener('change', (e) => {
+        document.getElementById('card-fields').style.display = e.target.value === 'cash' ? 'none' : 'block';
+      });
+
+      document.getElementById('card-number').addEventListener('input', (e) => {
+        let v = e.target.value.replace(/\D/g, '').substring(0, 16);
+        e.target.value = v.replace(/(.{4})/g, '$1 ').trim();
+      });
+
+      document.getElementById('card-expiry').addEventListener('input', (e) => {
+        let v = e.target.value.replace(/\D/g, '').substring(0, 4);
+        if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2);
+        e.target.value = v;
+      });
+    }
+
+    async function processPurchase() {
+      const name = document.getElementById('buyer-name').value.trim();
+      const email = document.getElementById('buyer-email').value.trim();
+      const method = document.getElementById('payment-method').value;
+
+      if (!name) { showToast('Ingresa tu nombre', 'warning'); return; }
+      if (!email) { showToast('Ingresa tu correo', 'warning'); return; }
+
+      if (method !== 'cash') {
+        const card = document.getElementById('card-number').value.trim();
+        if (card.replace(/\s/g, '').length < 16) { showToast('Número de tarjeta inválido', 'warning'); return; }
+      }
+
+      try {
+        // Create purchase
+        const purchase = await API.createPurchase({
+          userId: Auth.getUserId(),
+          functionId: checkoutData.functionId,
+          movieId: checkoutData.movieId || null,
+          seatIds: checkoutData.seats.map(s => s.seatId),
+          seatCodes: checkoutData.seats.map(s => s.seatCode),
+          quantity: checkoutData.seats.length,
+          total: checkoutData.total,
+          status: 'completed',
+          code: generateCode('PUR'),
+          paymentMethod: method,
+          buyerName: name,
+          buyerEmail: email,
+          createdAt: new Date().toISOString()
+        });
+
+        // Mark seats as sold
+        for (const seat of checkoutData.seats) {
+          const fSeat = functionSeats.find(fs => fs.seatId === seat.seatId);
+          if (fSeat) {
+            await API.updateFunctionSeat(fSeat.id, { status: 'sold' });
+          }
+        }
+
+        // Create ticket
+        const ticket = API.createTicket({
+          purchaseId: purchase.id,
+          userId: Auth.getUserId(),
+          functionId: checkoutData.functionId,
+          movieId: checkoutData.movieId || null,
+          movieTitle: checkoutData.movieTitle || 'Pelicula',
+          seatIds: checkoutData.seats.map(s => s.seatId),
+          quantity: checkoutData.seats.length,
+          total: checkoutData.total,
+          code: generateCode('TKT'),
+          status: 'active',
+          createdAt: new Date().toISOString()
+        });
+
+        // Clean up
+        sessionStorage.removeItem('cinema_checkout');
+
+        showToast('Compra realizada con exito!', 'success');
+        window.location.href = 'confirmacion.html?ticketId=' + ticket.id;
+
+      } catch (err) {
+        showToast('Error al procesar la compra. Intenta de nuevo.', 'error');
+      }
+    }
+
+    // Need to load function seats for the update
+    let functionSeats = [];
+    async function init() {
+      if (checkoutData) {
+        functionSeats = await API.getFunctionSeats(checkoutData.functionId);
+      }
+      loadCheckout();
+    }
+
+    init();
+  </script>
+</body>
+</html>

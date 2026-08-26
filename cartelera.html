@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cartelera - CINEMA PREMIUM</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">CINEMA</a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="cartelera.html" class="active">Cartelera</a></li>
+      <li><a href="mis-entradas.html">Mis Entradas</a></li>
+      <li><a href="mi-lista.html">Mi Lista</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div id="nav-user-area"></div>
+      <button class="nav-mobile-toggle">&#9776;</button>
+    </div>
+  </nav>
+
+  <main class="page-content">
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Cartelera</h2>
+            <p class="section-subtitle">Todas las películas en cartelera</p>
+          </div>
+        </div>
+
+        <div class="search-bar" id="search-bar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="search-input" placeholder="Buscar películas...">
+        </div>
+
+        <div class="filter-bar" id="filter-bar">
+          <button class="filter-chip active" data-genre="all">Todas</button>
+        </div>
+
+        <div class="movie-grid" id="movies-grid">
+          <div class="loading-spinner"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="padding:2rem;text-align:center;color:var(--on-background-dim);font-size:0.8rem;border-top:1px solid rgba(255,255,255,0.05);">
+    <p>&copy; 2026 CINEMA PREMIUM. Todos los derechos reservados.</p>
+  </footer>
+<script src="js/api.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/tmdb.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    Auth.init();
+    updateNavAuth();
+    setupMobileNav();
+    setupNavbarScroll();
+
+    let allMovies = [];
+    let currentGenre = 'all';
+    let searchTimeout = null;
+
+    const genreMap = {
+      28:'Acción',12:'Aventura',16:'Animación',35:'Comedia',80:'Crimen',
+      99:'Documental',18:'Drama',10751:'Familiar',14:'Fantasía',36:'Historia',
+      27:'Terror',10402:'Música',9648:'Misterio',10749:'Romance',878:'Ciencia Ficción',
+      10770:'TV Movie',53:'Suspense',10752:'Bélico',37:'Western'
+    };
+
+    async function loadCartelera() {
+      try {
+        const [nowPlaying, popular, topRated] = await Promise.all([
+          TMDB.getNowPlaying(),
+          TMDB.getPopular(),
+          TMDB.getTopRated()
+        ]);
+
+        const seen = new Set();
+        allMovies = [];
+        [nowPlaying, popular, topRated].forEach(list => {
+          (list.results || []).forEach(m => {
+            if (!seen.has(m.id)) {
+              seen.add(m.id);
+              allMovies.push(m);
+            }
+          });
+        });
+
+        buildFilters();
+        renderMovies(allMovies);
+      } catch (err) {
+        document.getElementById('movies-grid').innerHTML = renderEmptyState('Error al cargar la cartelera');
+      }
+    }
+
+    function buildFilters() {
+      const usedGenres = new Set();
+      allMovies.forEach(m => {
+        if (m.genre_ids) m.genre_ids.forEach(g => usedGenres.add(g));
+      });
+
+      const bar = document.getElementById('filter-bar');
+      bar.innerHTML = '<button class="filter-chip active" data-genre="all">Todas</button>';
+      [...usedGenres].sort().forEach(gId => {
+        if (genreMap[gId]) {
+          bar.innerHTML += `<button class="filter-chip" data-genre="${gId}">${genreMap[gId]}</button>`;
+        }
+      });
+
+      bar.querySelectorAll('.filter-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          bar.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentGenre = btn.dataset.genre;
+          filterMovies();
+        });
+      });
+    }
+
+    function filterMovies() {
+      const query = document.getElementById('search-input').value.toLowerCase().trim();
+      let filtered = [...allMovies];
+
+      if (query) {
+        filtered = filtered.filter(m =>
+          m.title.toLowerCase().includes(query) ||
+          (m.overview && m.overview.toLowerCase().includes(query))
+        );
+      }
+
+      if (currentGenre !== 'all') {
+        const genreId = parseInt(currentGenre);
+        filtered = filtered.filter(m => m.genre_ids && m.genre_ids.includes(genreId));
+      }
+
+      renderMovies(filtered);
+    }
+
+    function renderMovies(movies) {
+      const grid = document.getElementById('movies-grid');
+      if (!movies.length) {
+        grid.innerHTML = renderEmptyState('No se encontraron películas');
+        return;
+      }
+      grid.innerHTML = movies.map(m => renderMovieCard(m)).join('');
+    }
+
+    document.getElementById('search-input').addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        filterMovies();
+        const q = document.getElementById('search-input').value.trim();
+        if (q && Auth.isLoggedIn()) {
+          API.logActivity(Auth.getUserId(), 'search', { query: q });
+        }
+      }, 300);
+    });
+
+    loadCartelera();
+  </script>
+</body>
+</html>

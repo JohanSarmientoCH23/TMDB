@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Entradas - CINEMA PREMIUM</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">CINEMA</a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="cartelera.html">Cartelera</a></li>
+      <li><a href="mis-entradas.html" class="active">Mis Entradas</a></li>
+      <li><a href="mi-lista.html">Mi Lista</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div id="nav-user-area"></div>
+      <button class="nav-mobile-toggle">&#9776;</button>
+    </div>
+  </nav>
+
+  <main class="page-content">
+    <div class="container">
+      <div class="section-header" style="padding-top:2rem">
+        <div>
+          <h2 class="section-title">Mis Entradas</h2>
+          <p class="section-subtitle">Tus tickets y reservas</p>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('tickets')">Tickets</button>
+        <button class="tab-btn" onclick="showTab('reservations')">Reservas</button>
+      </div>
+
+      <div id="tickets-list">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+      </div>
+      <div id="reservations-list" style="display:none">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <footer style="padding:2rem;text-align:center;color:var(--on-background-dim);font-size:0.8rem;border-top:1px solid rgba(255,255,255,0.05);">
+    <p>&copy; 2026 CINEMA PREMIUM. Todos los derechos reservados.</p>
+  </footer>
+<script src="js/api.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/tmdb.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    Auth.init();
+    updateNavAuth();
+    setupMobileNav();
+    setupNavbarScroll();
+
+    if (!Auth.isLoggedIn()) {
+      window.location.href = 'login.html?redirect=mis-entradas.html';
+    }
+
+    function showTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('tickets-list').style.display = tab === 'tickets' ? 'block' : 'none';
+      document.getElementById('reservations-list').style.display = tab === 'reservations' ? 'block' : 'none';
+    }
+
+    async function loadTickets() {
+      try {
+        const [tickets, purchases, reservations, rooms, functions] = await Promise.all([
+          API.getTicketsByUser(Auth.getUserId()),
+          API.getPurchasesByUser(Auth.getUserId()),
+          API.getReservationsByUser(Auth.getUserId()),
+          API.getRooms(),
+          API.getFunctions()
+        ]);
+
+        // Render tickets
+        const ticketsContainer = document.getElementById('tickets-list');
+        if (!tickets.length) {
+          ticketsContainer.innerHTML = renderEmptyState('No tienes tickets aún', '🎫');
+          return;
+        }
+
+        let html = '';
+        for (const ticket of tickets) {
+          const func = functions.find(f => f.id === ticket.functionId);
+          if (!func) continue;
+          const room = rooms.find(r => r.id === func.roomId);
+          let movie;
+          try {
+            movie = await TMDB.getMovieDetails(func.movieId);
+          } catch (e) {
+            // Fallback: usar datos guardados en el ticket
+            movie = { title: ticket.movieTitle || 'Pelicula', poster_path: null };
+          }
+          html += renderMiniTicket(ticket, movie, func, room);
+        }
+        ticketsContainer.innerHTML = html || renderEmptyState('No se pudieron cargar los tickets');
+
+        // Render reservations
+        const reservationsContainer = document.getElementById('reservations-list');
+        if (!reservations.length) {
+          reservationsContainer.innerHTML = renderEmptyState('No tienes reservas', '📋');
+          return;
+        }
+
+        let resHtml = '';
+        for (const res of reservations) {
+          const func = functions.find(f => f.id === res.functionId);
+          if (!func) continue;
+          const room = rooms.find(r => r.id === func.roomId);
+          let movie;
+          try {
+            movie = await TMDB.getMovieDetails(func.movieId);
+          } catch (e) {
+            movie = { title: res.movieTitle || 'Pelicula', poster_path: null };
+          }
+          const seats = API.getSeats(func.roomId);
+          const seatCodes = (res.seatIds || []).map(id => {
+            const s = seats.find(x => x.id === id);
+            return s ? s.seatCode : '?';
+          });
+          const posterUrl = movie.poster_path ? TMDB.getPosterURL(movie.poster_path) : '';
+          resHtml += `
+              <div class="mini-ticket">
+                <div class="mini-ticket-poster">
+                  ${posterUrl ? '<img src="' + posterUrl + '" alt="' + movie.title + '" loading="lazy">' : ''}
+                </div>
+                <div class="mini-ticket-info">
+                  <h4>${movie.title}</h4>
+                  <p>${formatDate(func.date)} • ${func.time}</p>
+                  <p>${room ? room.name : 'Sala'} • ${seatCodes.join(', ')}</p>
+                  <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.3rem">
+                    <span class="mini-ticket-code">${res.code}</span>
+                    <span class="badge badge-info">${res.status}</span>
+                  </div>
+                </div>
+              </div>
+            `;
+        }
+        reservationsContainer.innerHTML = resHtml || renderEmptyState('No se pudieron cargar las reservas');
+
+      } catch (err) {
+        document.getElementById('tickets-list').innerHTML = renderEmptyState('Error al cargar tus entradas');
+      }
+    }
+
+    loadTickets();
+  </script>
+</body>
+</html>

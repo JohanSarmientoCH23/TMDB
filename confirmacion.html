@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmación - CINEMA PREMIUM</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">CINEMA</a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="cartelera.html">Cartelera</a></li>
+      <li><a href="mis-entradas.html">Mis Entradas</a></li>
+      <li><a href="mi-lista.html">Mi Lista</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div id="nav-user-area"></div>
+      <button class="nav-mobile-toggle">&#9776;</button>
+    </div>
+  </nav>
+
+  <main class="page-content">
+    <div class="container" style="max-width:600px">
+      <div id="confirmation-content" style="padding:2rem 0">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <footer style="padding:2rem;text-align:center;color:var(--on-background-dim);font-size:0.8rem;border-top:1px solid rgba(255,255,255,0.05);">
+    <p>&copy; 2026 CINEMA PREMIUM. Todos los derechos reservados.</p>
+  </footer>
+<script src="js/api.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/tmdb.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/qrcode.js"></script>
+  <script>
+    Auth.init();
+    updateNavAuth();
+    setupMobileNav();
+    setupNavbarScroll();
+
+    const ticketId = parseInt(getParam('ticketId'));
+
+    async function loadConfirmation() {
+      if (!ticketId) {
+        document.getElementById('confirmation-content').innerHTML = renderEmptyState('Ticket no encontrado');
+        return;
+      }
+
+      try {
+        const ticket = API.getTicket(ticketId);
+        if (!ticket) {
+          document.getElementById('confirmation-content').innerHTML = renderEmptyState('Ticket no encontrado');
+          return;
+        }
+
+        const func = API.getFunction(ticket.functionId);
+        const room = func ? API.getRoom(func.roomId) : null;
+
+        // Intentar obtener datos de pelicula de TMDB, si falla usar datos guardados
+        let movieTitle = ticket.movieTitle || 'Pelicula';
+        let moviePoster = null;
+        try {
+          const movie = await TMDB.getMovieDetails(func.movieId);
+          movieTitle = movie.title;
+          moviePoster = movie.poster_path;
+        } catch (e) {
+          // TMDB no disponible, usar datos del ticket
+          movieTitle = ticket.movieTitle || sessionStorage.getItem('cinema_last_movieTitle') || 'Pelicula';
+        }
+
+        const seats = func ? API.getSeats(func.roomId) : [];
+        const seatCodes = (ticket.seatIds || []).map(id => {
+          const s = seats.find(x => x.id === id);
+          return s ? s.seatCode : '?';
+        });
+
+        renderTicket(ticket, func, room, { title: movieTitle, poster_path: moviePoster }, seatCodes);
+      } catch (err) {
+        console.error('Error ticket:', err);
+        document.getElementById('confirmation-content').innerHTML = renderEmptyState('Error al cargar el ticket');
+      }
+    }
+
+    function renderTicket(ticket, func, room, movie, seatCodes) {
+      const poster = movie.poster_path ? TMDB.getPosterURL(movie.poster_path) : '';
+
+      document.getElementById('confirmation-content').innerHTML = `
+        <div class="confirmation">
+          <div class="confirmation-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <h2>Compra Exitosa!</h2>
+          <p>Tu ticket ha sido generado correctamente</p>
+        </div>
+
+        <div class="ticket" id="ticket-card">
+          <div class="ticket-header">
+            <p style="font-size:0.75rem;opacity:0.8;text-transform:uppercase;letter-spacing:2px;margin-bottom:0.3rem">CINEMA PREMIUM</p>
+            <h3>${movie.title}</h3>
+          </div>
+          <div class="ticket-body">
+            <div class="ticket-field">
+              <label>Fecha</label>
+              <span>${func ? formatDate(func.date) : '-'}</span>
+            </div>
+            <div class="ticket-field">
+              <label>Hora</label>
+              <span>${func ? func.time : '-'}</span>
+            </div>
+            <div class="ticket-field">
+              <label>Sala</label>
+              <span>${room ? room.name + ' (' + room.type + ')' : '-'}</span>
+            </div>
+            <div class="ticket-field">
+              <label>Formato</label>
+              <span>${room ? room.type : '-'}</span>
+            </div>
+            <div class="ticket-field">
+              <label>Asientos</label>
+              <span>${seatCodes.length > 0 ? seatCodes.join(', ') : '-'}</span>
+            </div>
+            <div class="ticket-field">
+              <label>Cantidad</label>
+              <span>${ticket.quantity} entrada${ticket.quantity > 1 ? 's' : ''}</span>
+            </div>
+            <div class="ticket-field">
+              <label>Total</label>
+              <span style="color:var(--primary);font-size:1.2rem">${formatCurrency(ticket.total)}</span>
+            </div>
+            <div class="ticket-field">
+              <label>Estado</label>
+              <span class="badge badge-success">Activo</span>
+            </div>
+          </div>
+          <div class="ticket-divider"></div>
+          <div class="ticket-qr">
+            <canvas id="qr-canvas"></canvas>
+            <div class="ticket-code" style="margin-top:1rem">${ticket.code}</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:1rem;margin-top:2rem;justify-content:center;flex-wrap:wrap">
+          <a href="mis-entradas.html" class="btn btn-primary">Mis Entradas</a>
+          <a href="index.html" class="btn btn-secondary">Volver al Inicio</a>
+        </div>
+      `;
+
+      // Generate QR
+      if (typeof QRCode !== 'undefined' && QRCode.toCanvas) {
+        QRCode.toCanvas(document.getElementById('qr-canvas'), ticket.code, {
+          cellSize: 4,
+          margin: 4,
+          darkColor: '#131313',
+          lightColor: '#ffb4aa'
+        });
+      }
+    }
+
+    loadConfirmation();
+  </script>
+</body>
+</html>
