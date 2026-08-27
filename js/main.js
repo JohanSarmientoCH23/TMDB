@@ -33,8 +33,8 @@ function generateCode(prefix = 'TKT') {
 }
 
 let _toastTimestamps = [];
-const TOAST_RATE_LIMIT = 2;
-const TOAST_RATE_WINDOW = 60000;
+const TOAST_RATE_LIMIT = 3;
+const TOAST_RATE_WINDOW = 6000;
 
 function showToast(message, type = 'info') {
   const now = Date.now();
