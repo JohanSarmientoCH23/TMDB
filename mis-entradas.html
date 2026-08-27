@@ -53,6 +53,7 @@
   <script src="js/config.js"></script>
   <script src="js/tmdb.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/lazyload.js"></script>
   <script src="js/main.js"></script>
   <script>
     Auth.init();
@@ -103,6 +104,7 @@
           html += renderMiniTicket(ticket, movie, func, room);
         }
         ticketsContainer.innerHTML = html || renderEmptyState('No se pudieron cargar los tickets');
+        if (typeof LazyLoad !== 'undefined') LazyLoad.observe(ticketsContainer);
 
         // Render reservations
         const reservationsContainer = document.getElementById('reservations-list');
@@ -146,6 +148,7 @@
             `;
         }
         reservationsContainer.innerHTML = resHtml || renderEmptyState('No se pudieron cargar las reservas');
+        if (typeof LazyLoad !== 'undefined') LazyLoad.observe(reservationsContainer);
 
       } catch (err) {
         document.getElementById('tickets-list').innerHTML = renderEmptyState('Error al cargar tus entradas');

@@ -96,6 +96,7 @@
   <script src="js/config.js"></script>
   <script src="js/tmdb.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/lazyload.js"></script>
   <script src="js/main.js"></script>
   <script>
     Auth.init();
@@ -176,6 +177,7 @@
         return;
       }
       container.innerHTML = movies.slice(0, 12).map(m => renderMovieCard(m)).join('');
+      if (typeof LazyLoad !== 'undefined') LazyLoad.observe(container);
     }
 
     loadHome();
