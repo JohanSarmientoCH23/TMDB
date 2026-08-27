@@ -131,7 +131,7 @@
           });
           const posterUrl = movie.poster_path ? TMDB.getPosterURL(movie.poster_path) : '';
           resHtml += `
-              <div class="mini-ticket">
+              <div class="mini-ticket" onclick="window.location.href='confirmacion.html?reservationId=${res.id}'">
                 <div class="mini-ticket-poster">
                   ${posterUrl ? '<img src="' + posterUrl + '" alt="' + movie.title + '" loading="lazy">' : ''}
                 </div>
@@ -141,7 +141,7 @@
                   <p>${room ? room.name : 'Sala'} • ${seatCodes.join(', ')}</p>
                   <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.3rem">
                     <span class="mini-ticket-code">${res.code}</span>
-                    <span class="badge badge-info">${res.status}</span>
+                    <span class="badge badge-warning">${res.status}</span>
                   </div>
                 </div>
               </div>

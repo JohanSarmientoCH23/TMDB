@@ -68,16 +68,16 @@
           <div class="checkout-form">
             <h2>Datos de Compra</h2>
             <div class="form-group">
-              <label>Nombre completo</label>
-              <input type="text" id="buyer-name" value="${user ? user.name : ''}" placeholder="Tu nombre">
+              <label>Nombre completo *</label>
+              <input type="text" id="buyer-name" value="${user ? user.name : ''}" placeholder="Tu nombre" required>
             </div>
             <div class="form-group">
-              <label>Correo electrónico</label>
-              <input type="email" id="buyer-email" value="${user ? user.email : ''}" placeholder="tu@email.com">
+              <label>Correo electrónico *</label>
+              <input type="email" id="buyer-email" value="${user ? user.email : ''}" placeholder="tu@email.com" required>
             </div>
             <div class="form-group">
-              <label>Método de pago</label>
-              <select id="payment-method">
+              <label>Método de pago *</label>
+              <select id="payment-method" required>
                 <option value="credit_card">Tarjeta de Crédito</option>
                 <option value="debit_card">Tarjeta de Débito</option>
                 <option value="cash">Efectivo</option>
@@ -85,17 +85,17 @@
             </div>
             <div id="card-fields">
               <div class="form-group">
-                <label>Número de tarjeta</label>
-                <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19">
+                <label>Número de tarjeta *</label>
+                <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" required>
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label>Fecha de expiración</label>
-                  <input type="text" id="card-expiry" placeholder="MM/AA" maxlength="5">
+                  <label>Fecha de expiración *</label>
+                  <input type="text" id="card-expiry" placeholder="MM/AA" maxlength="5" required>
                 </div>
                 <div class="form-group">
-                  <label>CVV</label>
-                  <input type="text" id="card-cvv" placeholder="123" maxlength="4">
+                  <label>CVV *</label>
+                  <input type="text" id="card-cvv" placeholder="123" maxlength="4" required>
                 </div>
               </div>
             </div>
@@ -148,7 +148,11 @@
 
       if (method !== 'cash') {
         const card = document.getElementById('card-number').value.trim();
+        const expiry = document.getElementById('card-expiry').value.trim();
+        const cvv = document.getElementById('card-cvv').value.trim();
         if (card.replace(/\s/g, '').length < 16) { showToast('Número de tarjeta inválido', 'warning'); return; }
+        if (!expiry || expiry.length < 5) { showToast('Ingresa la fecha de expiración', 'warning'); return; }
+        if (!cvv || cvv.length < 3) { showToast('Ingresa el CVV', 'warning'); return; }
       }
 
       try {
