@@ -195,8 +195,39 @@
         showToast('Selecciona al menos un asiento', 'warning');
         return;
       }
-      // Store selection in sessionStorage
-      sessionStorage.setItem('cinema_checkout', JSON.stringify({
+      showActionChoice();
+    }
+
+    function showActionChoice() {
+      const total = selectedSeats.length * funcData.price;
+      const seatsList = selectedSeats.map(s => `<span class="seat-tag">${s.seatCode}</span>`).join('');
+
+      const content = `
+        <div style="text-align:center;margin-bottom:1.5rem">
+          <p style="color:var(--on-background-dim);margin-top:0.5rem">¿Qué deseas hacer con ${selectedSeats.length} entrada${selectedSeats.length > 1 ? 's' : ''}?</p>
+          <div class="selected-seats-list" style="justify-content:center;margin-top:0.8rem">${seatsList}</div>
+          <p style="font-size:1.1rem;font-weight:600;margin-top:0.8rem;color:var(--primary)">Total: ${formatCurrency(total)}</p>
+        </div>
+        <div class="action-choice-grid">
+          <button class="action-choice-card" onclick="goToReserve()">
+            <div class="action-choice-icon">🎟️</div>
+            <h3>Reservar</h3>
+            <p>Reserva tus asientos y paga en el local</p>
+            <span class="action-choice-note">Sin pago en línea</span>
+          </button>
+          <button class="action-choice-card" onclick="goToPurchase()">
+            <div class="action-choice-icon">💳</div>
+            <h3>Comprar</h3>
+            <p>Paga ahora y recibe tu ticket digital</p>
+            <span class="action-choice-note">Pago en línea</span>
+          </button>
+        </div>
+      `;
+      showModal('¿Qué desea hacer?', content);
+    }
+
+    function storeSelection() {
+      return {
         functionId,
         movieId: funcData.movieId,
         movieTitle: movieData.title,
@@ -207,8 +238,19 @@
         time: funcData.time,
         price: funcData.price,
         total: selectedSeats.length * funcData.price
-      }));
+      };
+    }
+
+    function goToPurchase() {
+      closeModal();
+      sessionStorage.setItem('cinema_checkout', JSON.stringify(storeSelection()));
       window.location.href = 'checkout.html';
+    }
+
+    function goToReserve() {
+      closeModal();
+      sessionStorage.setItem('cinema_reservation', JSON.stringify(storeSelection()));
+      window.location.href = 'reservar.html';
     }
 
     loadSeats();
