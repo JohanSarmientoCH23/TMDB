@@ -243,3 +243,20 @@ function setupNavbarScroll() {
 function getParam(name) {
   return new URLSearchParams(window.location.search).get(name);
 }
+
+// Renderizar HTML en un contenedor e inicializar lazy loading
+function renderTo(selector, html) {
+  const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
+  if (!el) return;
+  el.innerHTML = html;
+  if (typeof LazyLoad !== 'undefined') {
+    LazyLoad.observe(el);
+  }
+}
+
+// Inicializar lazy loading para toda la pagina
+function initLazyLoad() {
+  if (typeof LazyLoad !== 'undefined') {
+    LazyLoad.observeAll();
+  }
+}

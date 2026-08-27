@@ -66,6 +66,7 @@
   <script src="js/config.js"></script>
   <script src="js/tmdb.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/lazyload.js"></script>
   <script src="js/main.js"></script>
   <script>
     Auth.init();
@@ -173,6 +174,7 @@
           </div>` : ''}
         </div>
       `;
+      if (typeof LazyLoad !== 'undefined') LazyLoad.observe(document.getElementById('detail-content'));
     }
 
     function loadTrailer() {
