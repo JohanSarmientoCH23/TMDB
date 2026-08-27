@@ -875,19 +875,143 @@ input, select, textarea {
   flex-shrink: 0;
 }
 
+/* ===================== ASIENTOS ESTILO SILLA ===================== */
+
 .seat {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px 8px 4px 4px;
+  width: 30px;
+  height: 28px;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: 0;
   cursor: pointer;
-  transition: var(--transition);
-  border: 2px solid transparent;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  color: var(--seat-available);
+  background: transparent;
+  border: none;
+}
+.seat {
+  width: 30px;
+  height: 28px;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Ya no mostramos el número */
+  font-size: 0;
+
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  color: var(--seat-available);
+  background: transparent;
+  border: none;
+}
+
+/* Respaldo de la silla */
+.seat::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 7px;
+
+  width: 16px;
+  height: 13px;
+
+  background: currentColor;
+  border-radius: 4px 4px 2px 2px;
+}
+
+/* Parte donde te sientas */
+.seat::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+
+  width: 22px;
+  height: 7px;
+
+  background: currentColor;
+  border-radius: 3px 3px 2px 2px;
+
+  /* Pequeñas patas/soporte */
+  box-shadow:
+    3px 5px 0 -1px currentColor,
+    16px 5px 0 -1px currentColor;
+}
+/* Respaldo de la silla */
+.seat::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 16px;
+  height: 13px;
+
+  background: currentColor;
+  border-radius: 4px 4px 2px 2px;
+}
+
+/* Parte donde te sientas */
+.seat::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 22px;
+  height: 7px;
+
+  background: currentColor;
+  border-radius: 3px 3px 2px 2px;
+
+  /* Patas centradas simétricamente respecto al asiento (22px de ancho) */
+  box-shadow:
+    -8px 5px 0 -1px currentColor,
+    8px 5px 0 -1px currentColor;
+}
+
+
+/* ===================== DISPONIBLE ===================== */
+
+.seat-available {
+  color: var(--seat-available);
+}
+
+.seat-available:hover {
+  transform: scale(1.2);
+}
+
+
+/* ===================== SELECCIONADO ===================== */
+
+.seat-selected {
+  color: var(--seat-selected);
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 5px rgba(33, 150, 243, 0.5));
+}
+
+
+/* ===================== RESERVADO ===================== */
+
+.seat-reserved {
+  color: var(--seat-reserved);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+
+/* ===================== VENDIDO ===================== */
+
+.seat-sold {
+  color: var(--seat-sold);
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .seat-available {
