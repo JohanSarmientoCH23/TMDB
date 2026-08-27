@@ -32,7 +32,16 @@ function generateCode(prefix = 'TKT') {
   return `${prefix}-${code}`;
 }
 
+let _toastTimestamps = [];
+const TOAST_RATE_LIMIT = 2;
+const TOAST_RATE_WINDOW = 60000;
+
 function showToast(message, type = 'info') {
+  const now = Date.now();
+  _toastTimestamps = _toastTimestamps.filter(t => now - t < TOAST_RATE_WINDOW);
+  if (_toastTimestamps.length >= TOAST_RATE_LIMIT) return;
+  _toastTimestamps.push(now);
+
   let container = document.querySelector('.toast-container');
   if (!container) {
     container = document.createElement('div');
