@@ -67,6 +67,8 @@
   <script src="js/tmdb.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/lazyload.js"></script>
+  <script src="js/sanitize.js"></script>
+  <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
     Auth.init();
@@ -126,8 +128,8 @@
           <img src="${poster}" alt="${m.title}">
         </div>
         <div class="detail-info">
-          <h1 class="detail-title">${m.title}</h1>
-          ${m.tagline ? `<p style="color:var(--primary);font-style:italic;margin-bottom:1rem">${m.tagline}</p>` : ''}
+          <h1 class="detail-title">${escapeHtml(m.title)}</h1>
+          ${m.tagline ? `<p style="color:var(--primary);font-style:italic;margin-bottom:1rem">${escapeHtml(m.tagline)}</p>` : ''}
           <div class="detail-meta">
             <span class="detail-meta-item">
               <svg viewBox="0 0 24 24" fill="#ffd700" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -144,9 +146,9 @@
             </span>` : ''}
           </div>
           <div class="detail-genres">
-            ${genres.map(g => `<span class="genre-tag">${g}</span>`).join('')}
+            ${genres.map(g => `<span class="genre-tag">${escapeHtml(g)}</span>`).join('')}
           </div>
-          <p class="detail-desc">${m.overview || 'Sin descripción disponible.'}</p>
+          <p class="detail-desc">${escapeHtml(m.overview || 'Sin descripción disponible.')}</p>
           <div class="detail-actions">
             <a href="funciones.html?movieId=${m.id}" class="btn btn-primary btn-lg">Comprar Entradas</a>
             <button class="btn btn-secondary fav-btn" id="fav-btn" onclick="toggleFavorite()">
@@ -157,7 +159,7 @@
           </div>
           ${director ? `
           <div class="detail-credits" style="margin-top:1.5rem">
-            <p style="font-size:0.85rem;color:var(--on-background-dim)"><strong style="color:var(--on-background)">Director:</strong> ${director.name}</p>
+            <p style="font-size:0.85rem;color:var(--on-background-dim)"><strong style="color:var(--on-background)">Director:</strong> ${escapeHtml(director.name)}</p>
           </div>` : ''}
           ${cast.length > 0 ? `
           <div class="detail-credits">
@@ -190,7 +192,7 @@
           <div class="trailer-section">
             <h3>Trailer</h3>
             <div class="trailer-container">
-              <iframe src="https://www.youtube.com/embed/${trailer.key}" allowfullscreen></iframe>
+              <iframe src="https://www.youtube.com/embed/${escapeHtml(trailer.key)}" allowfullscreen></iframe>
             </div>
           </div>
         `;
@@ -224,29 +226,19 @@
 
     function renderRatingsList(ratings, users) {
       if (!ratings.length) return;
-      document.getElementById('ratings-section').innerHTML = `
+      const container = document.getElementById('ratings-section');
+      let html = `
         <div class="section-header">
           <h2 class="section-title">Valoraciones</h2>
         </div>
-        ${ratings.map(r => {
-          const user = users.find(u => u.id === r.userId);
-          const userName = user ? user.name : 'Usuario #' + r.userId;
-          const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-          return `
-          <div class="rating-card">
-            <div class="rating-card-header">
-              <div class="rating-card-user">
-                <div class="rating-card-avatar">${initials}</div>
-                <span style="font-weight:500">${userName}</span>
-              </div>
-              <div class="rating-stars">
-                ${Array.from({length:5}, (_,i) => `<span style="color:${i < r.rating ? '#ffd700' : 'rgba(255,255,255,0.2)'}">★</span>`).join('')}
-              </div>
-            </div>
-            <p class="rating-card-comment">${r.comment || ''}</p>
-          </div>
-        `}).join('')}
       `;
+      ratings.forEach(r => {
+        const user = users.find(u => u.id === r.userId);
+        const userName = user ? user.name : 'Usuario #' + r.userId;
+        const card = CRatingCard.create(userName, r.rating, r.comment || '');
+        html += card.outerHTML;
+      });
+      container.innerHTML = html;
     }
 
     function openRatingModal() {
