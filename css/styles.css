@@ -1,42 +1,78 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --surface-dim: #131313;
-  --surface-bright: #3a3939;
-  --surface-card: #1a1a1a;
-  --surface-card-hover: #222222;
-  --primary: #ffb4aa;
-  --on-primary: #690003;
-  --on-primary-container: #fff7f6;
-  --on-background: #e5e2e1;
-  --on-background-dim: #9e9e9e;
-  --outline-variant: #5e3f3b;
-  --tertiary-container: #0072d7;
-  --accent-red: #e50914;
-  --accent-red-dark: #b20710;
-  --seat-available: #4caf50;
-  --seat-selected: #2196f3;
-  --seat-reserved: #ff9800;
-  --seat-sold: #616161;
+  /* ================= FILMS GALAXY ================= */
+
+  /* Fondos */
+  --surface-dim: #080B24;
+  --surface-bright: #1E2559;
+  --surface-card: #151A46;
+  --surface-card-hover: #20275C;
+
+  /* Colores principales */
+  --primary: #22D3EE;
+  --on-primary: #03141A;
+  --on-primary-container: #E8F1FF;
+
+  /* Textos */
+  --on-background: #E8F1FF;
+  --on-background-dim: #9BA9C9;
+
+  /* Bordes */
+  --outline-variant: #39427A;
+
+  /* Azul eléctrico */
+  --tertiary-container: #38BDF8;
+
+  /* Identidad Films Galaxy */
+  --accent-red: #8B5CF6;
+  --accent-red-dark: #6D28D9;
+
+  /* Asientos */
+  --seat-available: #14B8A6;
+  --seat-selected: #22D3EE;
+  --seat-reserved: #F5C542;
+  --seat-sold: #596174;
+
+  /* Colores adicionales */
+  --accent-cyan: #22D3EE;
+  --accent-purple: #8B5CF6;
+  --accent-teal: #14B8A6;
+  --accent-gold: #F5C542;
+
+  /* Tipografía */
   --font-heading: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+
   --radius: 12px;
   --radius-sm: 8px;
   --radius-lg: 16px;
+
   --shadow: 0 4px 20px rgba(0,0,0,0.4);
   --shadow-lg: 0 8px 40px rgba(0,0,0,0.6);
+
   --transition: all 0.3s ease;
-}
+}     
 
 html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-body);
-  background-color: var(--surface-dim);
   color: var(--on-background);
   min-height: 100vh;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+
+  background:
+    linear-gradient(
+      rgba(8, 11, 36, 0.82),
+      rgba(8, 11, 36, 0.94)
+    ),
+    url('../img/cinema-bg.png');
+
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -67,19 +103,25 @@ input, select, textarea {
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(19, 19, 19, 0.95);
+
+  background: rgba(8, 11, 36, 0.88);
+
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255,180,170,0.1);
+
+  border-bottom: 1px solid rgba(34,211,238,0.15);
+
   padding: 0 2rem;
   height: 70px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   transition: var(--transition);
 }
 
 .navbar.scrolled {
-  background: rgba(19, 19, 19, 0.98);
+  background: rgba(8, 11, 36, 0.98);
   box-shadow: 0 2px 20px rgba(0,0,0,0.5);
 }
 
@@ -87,7 +129,8 @@ input, select, textarea {
   font-family: var(--font-heading);
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--accent-red);
+  color: var(--accent-cyan);
+  text-shadow: 0 0 15px rgba(34, 211, 238, 0.35);
   letter-spacing: 2px;
   text-transform: uppercase;
 }
@@ -207,13 +250,19 @@ input, select, textarea {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to top,
-    var(--surface-dim) 0%,
-    rgba(19,19,19,0.8) 40%,
-    rgba(19,19,19,0.3) 70%,
-    rgba(19,19,19,0.5) 100%
-  );
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(8, 11, 36, 0.95) 0%,
+      rgba(8, 11, 36, 0.65) 45%,
+      rgba(8, 11, 36, 0.15) 100%
+    ),
+    linear-gradient(
+      to top,
+      rgba(8, 11, 36, 0.95) 0%,
+      transparent 65%
+    );
 }
 
 .hero-content {
@@ -316,14 +365,29 @@ input, select, textarea {
 }
 
 .btn-primary {
-  background: var(--accent-red);
+  background: linear-gradient(
+    135deg,
+    #8B5CF6,
+    #22D3EE
+  );
+
   color: white;
+
+  box-shadow:
+    0 4px 15px rgba(34, 211, 238, 0.15);
 }
 
 .btn-primary:hover {
-  background: var(--accent-red-dark);
+  background: linear-gradient(
+    135deg,
+    #7C3AED,
+    #06B6D4
+  );
+
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(229,9,20,0.4);
+
+  box-shadow:
+    0 8px 25px rgba(34, 211, 238, 0.30);
 }
 
 .btn-secondary {
@@ -408,14 +472,30 @@ input, select, textarea {
   position: relative;
   border-radius: var(--radius);
   overflow: hidden;
-  background: var(--surface-card);
-  transition: var(--transition);
+
+  background: rgba(21, 26, 70, 0.82);
+
+  border: 1px solid rgba(139, 92, 246, 0.12);
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+
   cursor: pointer;
 }
 
 .movie-card:hover {
   transform: translateY(-8px);
-  box-shadow: var(--shadow-lg);
+
+  border-color: rgba(34, 211, 238, 0.35);
+
+  box-shadow:
+    0 15px 40px rgba(0, 0, 0, 0.55),
+    0 0 25px rgba(34, 211, 238, 0.10);
 }
 
 .movie-card-poster {
@@ -531,7 +611,16 @@ input, select, textarea {
   border: 1px solid rgba(255,255,255,0.1);
 }
 
-.carousel-btn:hover { background: var(--accent-red); }
+.carousel-btn:hover {
+  background: linear-gradient(
+    135deg,
+    #8B5CF6,
+    #22D3EE
+  );
+
+  box-shadow:
+    0 0 15px rgba(34, 211, 238, 0.25);
+}
 
 .carousel-btn.prev { left: -20px; }
 .carousel-btn.next { right: -20px; }
@@ -550,8 +639,11 @@ input, select, textarea {
 }
 
 .search-bar:focus-within {
-  border-color: var(--accent-red);
-  box-shadow: 0 0 0 3px rgba(229,9,20,0.1);
+  border-color: var(--accent-cyan);
+
+  box-shadow:
+    0 0 0 3px rgba(34, 211, 238, 0.12),
+    0 0 20px rgba(34, 211, 238, 0.08);
 }
 
 .search-bar input {
@@ -613,12 +705,14 @@ input, select, textarea {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to top,
-    var(--surface-dim) 5%,
-    rgba(19,19,19,0.6) 50%,
-    rgba(19,19,19,0.3) 100%
-  );
+
+  background:
+    linear-gradient(
+      to top,
+      var(--surface-dim) 5%,
+      rgba(8, 11, 36, 0.75) 50%,
+      rgba(8, 11, 36, 0.25) 100%
+    );
 }
 
 .detail-content {
@@ -891,23 +985,6 @@ input, select, textarea {
   background: transparent;
   border: none;
 }
-.seat {
-  width: 30px;
-  height: 28px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  /* Ya no mostramos el número */
-  font-size: 0;
-
-  cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  color: var(--seat-available);
-  background: transparent;
-  border: none;
-}
 
 /* Respaldo de la silla */
 .seat::before {
@@ -993,7 +1070,7 @@ input, select, textarea {
 .seat-selected {
   color: var(--seat-selected);
   transform: scale(1.15);
-  filter: drop-shadow(0 0 5px rgba(33, 150, 243, 0.5));
+  filter: drop-shadow(0 0 7px rgba(34, 211, 238, 0.7));
 }
 
 
@@ -1178,8 +1255,8 @@ input, select, textarea {
 
 .form-group input:focus,
 .form-group select:focus {
-  border-color: var(--accent-red);
-  box-shadow: 0 0 0 3px rgba(229,9,20,0.1);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12);
 }
 
 .form-row {
@@ -1200,7 +1277,11 @@ input, select, textarea {
 .ticket-header {
   padding: 2rem;
   text-align: center;
-  background: linear-gradient(135deg, var(--accent-red) 0%, #b20710 100%);
+  background: linear-gradient(
+  135deg,
+  #8B5CF6 0%,
+  #22D3EE 100%
+);
   color: white;
 }
 
@@ -1626,7 +1707,7 @@ input, select, textarea {
 
 .admin-sidebar-link.active {
   color: var(--accent-red);
-  background: rgba(229,9,20,0.08);
+  background: rgba(34,211,238,0.08);
   border-right: 3px solid var(--accent-red);
 }
 
