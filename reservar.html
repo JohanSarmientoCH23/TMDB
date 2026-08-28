@@ -39,6 +39,8 @@
   <script src="js/tmdb.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/lazyload.js"></script>
+  <script src="js/sanitize.js"></script>
+  <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
     Auth.init();
@@ -69,11 +71,11 @@
             <h2>Datos de Reserva</h2>
             <div class="form-group">
               <label>Nombre completo *</label>
-              <input type="text" id="buyer-name" value="${user ? user.name : ''}" placeholder="Tu nombre" required>
+              <input type="text" id="buyer-name" value="${user ? escapeHtml(user.name) : ''}" placeholder="Tu nombre" required>
             </div>
             <div class="form-group">
               <label>Correo electrónico *</label>
-              <input type="email" id="buyer-email" value="${user ? user.email : ''}" placeholder="tu@email.com" required>
+              <input type="email" id="buyer-email" value="${user ? escapeHtml(user.email) : ''}" placeholder="tu@email.com" required>
             </div>
             <div class="form-group">
               <label>Teléfono de contacto *</label>
@@ -90,16 +92,16 @@
 
           <div class="purchase-summary">
             <h3>Resumen de Reserva</h3>
-            <div class="summary-row"><span class="summary-label">Película</span><span>${reservationData.movieTitle}</span></div>
+            <div class="summary-row"><span class="summary-label">Película</span><span>${escapeHtml(reservationData.movieTitle)}</span></div>
             <div class="summary-row"><span class="summary-label">Fecha</span><span>${formatDate(reservationData.date)}</span></div>
             <div class="summary-row"><span class="summary-label">Hora</span><span>${reservationData.time}</span></div>
-            <div class="summary-row"><span class="summary-label">Sala</span><span>${reservationData.roomName}</span></div>
+            <div class="summary-row"><span class="summary-label">Sala</span><span>${escapeHtml(reservationData.roomName)}</span></div>
             <div class="summary-row">
               <span class="summary-label">Asientos</span>
               <span>${reservationData.seats.length}</span>
             </div>
             <div class="selected-seats-list">
-              ${reservationData.seats.map(s => `<span class="seat-tag">${s.seatCode}</span>`).join('')}
+              ${reservationData.seats.map(s => `<span class="seat-tag">${escapeHtml(s.seatCode)}</span>`).join('')}
             </div>
             <div class="summary-row"><span class="summary-label">Precio unitario</span><span>${formatCurrency(reservationData.price)}</span></div>
             <div class="summary-row total"><span>Total a pagar</span><span>${formatCurrency(reservationData.total)}</span></div>

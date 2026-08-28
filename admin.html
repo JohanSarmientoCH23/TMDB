@@ -86,6 +86,8 @@
   <script src="js/tmdb.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/lazyload.js"></script>
+  <script src="js/sanitize.js"></script>
+  <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
     Auth.init();
@@ -217,8 +219,8 @@
         const room = rooms.find(r => r.id === func.roomId);
         rows += `<tr>
           <td>${func.id}</td>
-          <td>${movie.title}</td>
-          <td>${room ? room.name : 'N/A'}</td>
+          <td>${escapeHtml(movie.title)}</td>
+          <td>${room ? escapeHtml(room.name) : 'N/A'}</td>
           <td>${formatDate(func.date)}</td>
           <td>${func.time}</td>
           <td>${formatCurrency(func.price)}</td>
@@ -250,7 +252,7 @@
       document.getElementById('modal-title').textContent = 'Crear Función';
       document.getElementById('modal-body').innerHTML = `
         <div class="form-group"><label>Película (TMDB ID)</label><input type="number" id="func-movieId" placeholder="Ej: 550"></div>
-        <div class="form-group"><label>Sala</label><select id="func-roomId">${rooms.map(r => `<option value="${r.id}">${r.name}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Sala</label><select id="func-roomId">${rooms.map(r => `<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('')}</select></div>
         <div class="form-row">
           <div class="form-group"><label>Fecha</label><input type="date" id="func-date"></div>
           <div class="form-group"><label>Hora</label><input type="time" id="func-time"></div>
@@ -295,9 +297,9 @@
         const seats = await API.getSeats(room.id);
         rows += `<tr>
           <td>${room.id}</td>
-          <td>${room.name}</td>
+          <td>${escapeHtml(room.name)}</td>
           <td>${room.capacity}</td>
-          <td><span class="badge badge-info">${room.type}</span></td>
+          <td><span class="badge badge-info">${escapeHtml(room.type)}</span></td>
           <td>${seats.length}</td>
           <td>
             <div class="table-actions">
@@ -371,9 +373,9 @@
         rows += `<tr>
           <td>${res.id}</td>
           <td>${res.userId}</td>
-          <td>${movieCache[func.movieId].title}</td>
+          <td>${escapeHtml(movieCache[func.movieId].title)}</td>
           <td>${formatDate(func.date)} ${func.time}</td>
-          <td>${room ? room.name : 'N/A'}</td>
+          <td>${room ? escapeHtml(room.name) : 'N/A'}</td>
           <td>${res.quantity}</td>
           <td>${formatCurrency(res.total)}</td>
           <td><span class="badge badge-${res.status === 'confirmed' ? 'success' : 'warning'}">${res.status}</span></td>
@@ -405,10 +407,10 @@
         const room = rooms.find(r => r.id === func.roomId);
         rows += `<tr>
           <td>${pur.id}</td>
-          <td>${pur.buyerName || 'N/A'}</td>
-          <td>${movieCache[func.movieId].title}</td>
+          <td>${escapeHtml(pur.buyerName || 'N/A')}</td>
+          <td>${escapeHtml(movieCache[func.movieId].title)}</td>
           <td>${formatDate(func.date)} ${func.time}</td>
-          <td>${room ? room.name : 'N/A'}</td>
+          <td>${room ? escapeHtml(room.name) : 'N/A'}</td>
           <td>${pur.quantity}</td>
           <td>${formatCurrency(pur.total)}</td>
           <td><span class="badge badge-success">${pur.status}</span></td>
@@ -438,9 +440,9 @@
         rows += `<tr>
           <td>${r.id}</td>
           <td>${r.userId}</td>
-          <td>${movieCache[r.movieId].title}</td>
+          <td>${escapeHtml(movieCache[r.movieId].title)}</td>
           <td>${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</td>
-          <td>${r.comment || '-'}</td>
+          <td>${escapeHtml(r.comment || '-')}</td>
         </tr>`;
       }
 

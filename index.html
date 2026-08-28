@@ -97,6 +97,8 @@
   <script src="js/tmdb.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/lazyload.js"></script>
+  <script src="js/sanitize.js"></script>
+  <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
     Auth.init();
@@ -114,13 +116,11 @@
           TMDB.getTopRated()
         ]);
 
-        // Hero
         if (trending.results && trending.results.length > 0) {
           const featured = trending.results[Math.floor(Math.random() * Math.min(5, trending.results.length))];
           renderHero(featured);
         }
 
-        // Grids
         renderGrid('now-playing-grid', nowPlaying.results || []);
         renderGrid('upcoming-grid', upcoming.results || []);
         renderGrid('popular-grid', popular.results || []);
@@ -136,11 +136,11 @@
 
     function renderHero(movie) {
       const backdrop = TMDB.getBackdropURL(movie.backdrop_path);
-      const title = movie.title || 'Sin título';
+      const title = escapeHtml(movie.title || 'Sin título');
       const rating = TMDB.formatRating(movie.vote_average);
       const year = movie.release_date ? new Date(movie.release_date).getFullYear() : '';
       const genres = movie.genre_ids ? movie.genre_ids.slice(0, 3) : [];
-      const desc = movie.overview || 'Sin descripción disponible';
+      const desc = escapeHtml(movie.overview || 'Sin descripción disponible');
 
       const genreNames = {
         28:'Acción',12:'Aventura',16:'Animación',35:'Comedia',80:'Crimen',
@@ -160,7 +160,7 @@
           </div>
         </div>
         <div class="hero-genres">
-          ${genres.map(g => `<span class="genre-tag">${genreNames[g] || 'Género'}</span>`).join('')}
+          ${genres.map(g => `<span class="genre-tag">${escapeHtml(genreNames[g] || 'Género')}</span>`).join('')}
         </div>
         <p class="hero-desc">${desc}</p>
         <div class="hero-actions">

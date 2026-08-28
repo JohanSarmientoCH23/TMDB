@@ -39,6 +39,8 @@
   <script src="js/tmdb.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/lazyload.js"></script>
+  <script src="js/sanitize.js"></script>
+  <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
     Auth.init();
@@ -69,9 +71,9 @@
           <div class="profile-header">
             <div class="profile-avatar">${initials}</div>
             <div class="profile-info">
-              <h2>${user.name}</h2>
-              <p>${user.email}</p>
-              <p style="font-size:0.8rem;margin-top:0.3rem"><span class="badge badge-info">${user.role}</span></p>
+              <h2>${escapeHtml(user.name)}</h2>
+              <p>${escapeHtml(user.email)}</p>
+              <p style="font-size:0.8rem;margin-top:0.3rem"><span class="badge badge-info">${escapeHtml(user.role)}</span></p>
             </div>
           </div>
 

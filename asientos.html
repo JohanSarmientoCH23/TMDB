@@ -49,6 +49,8 @@
   <script src="js/tmdb.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/lazyload.js"></script>
+  <script src="js/sanitize.js"></script>
+  <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
     Auth.init();
@@ -165,17 +167,17 @@
       document.getElementById('summary-panel').innerHTML = `
         <div class="purchase-summary">
           <h3>Resumen de Compra</h3>
-          <div class="summary-row"><span class="summary-label">Película</span><span>${movieData.title}</span></div>
+          <div class="summary-row"><span class="summary-label">Película</span><span>${escapeHtml(movieData.title)}</span></div>
           <div class="summary-row"><span class="summary-label">Fecha</span><span>${formatDate(funcData.date)}</span></div>
           <div class="summary-row"><span class="summary-label">Hora</span><span>${funcData.time}</span></div>
-          <div class="summary-row"><span class="summary-label">Sala</span><span>${roomData.name} (${roomData.type})</span></div>
+          <div class="summary-row"><span class="summary-label">Sala</span><span>${escapeHtml(roomData.name)} (${escapeHtml(roomData.type)})</span></div>
           <div class="summary-row">
             <span class="summary-label">Asientos</span>
             <span>${count}</span>
           </div>
           ${count > 0 ? `
           <div class="selected-seats-list">
-            ${selectedSeats.map(s => `<span class="seat-tag">${s.seatCode}</span>`).join('')}
+            ${selectedSeats.map(s => `<span class="seat-tag">${escapeHtml(s.seatCode)}</span>`).join('')}
           </div>` : ''}
           <div class="summary-row"><span class="summary-label">Precio unitario</span><span>${formatCurrency(funcData.price)}</span></div>
           <div class="summary-row total"><span>Total</span><span>${formatCurrency(total)}</span></div>
@@ -226,8 +228,9 @@
       showModal('¿Qué desea hacer?', content);
     }
 
-    function storeSelection() {
+    function storeSelection(actionType) {
       return {
+        actionType: actionType || 'purchase',
         functionId,
         movieId: funcData.movieId,
         movieTitle: movieData.title,
@@ -243,14 +246,14 @@
 
     function goToPurchase() {
       closeModal();
-      sessionStorage.setItem('cinema_checkout', JSON.stringify(storeSelection()));
+      sessionStorage.setItem('cinema_checkout', JSON.stringify(storeSelection('purchase')));
       window.location.href = 'checkout.html';
     }
 
     function goToReserve() {
       closeModal();
-      sessionStorage.setItem('cinema_reservation', JSON.stringify(storeSelection()));
-      window.location.href = 'reservar.html';
+      sessionStorage.setItem('cinema_checkout', JSON.stringify(storeSelection('reservation')));
+      window.location.href = 'checkout.html';
     }
 
     loadSeats();

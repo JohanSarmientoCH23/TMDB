@@ -54,6 +54,8 @@
   <script src="js/tmdb.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/lazyload.js"></script>
+  <script src="js/sanitize.js"></script>
+  <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
     Auth.init();
@@ -133,10 +135,10 @@
           resHtml += `
               <div class="mini-ticket" onclick="window.location.href='confirmacion.html?reservationId=${res.id}'">
                 <div class="mini-ticket-poster">
-                  ${posterUrl ? '<img src="' + posterUrl + '" alt="' + movie.title + '" loading="lazy">' : ''}
+                  ${posterUrl ? '<img src="' + posterUrl + '" alt="' + escapeHtml(movie.title) + '" loading="lazy">' : ''}
                 </div>
                 <div class="mini-ticket-info">
-                  <h4>${movie.title}</h4>
+                  <h4>${escapeHtml(movie.title)}</h4>
                   <p>${formatDate(func.date)} • ${func.time}</p>
                   <p>${room ? room.name : 'Sala'} • ${seatCodes.join(', ')}</p>
                   <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.3rem">

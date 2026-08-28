@@ -39,6 +39,8 @@
   <script src="js/tmdb.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/lazyload.js"></script>
+  <script src="js/sanitize.js"></script>
+  <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script src="js/qrcode.js"></script>
   <script>
@@ -143,7 +145,7 @@
         <div class="ticket" id="ticket-card">
           <div class="ticket-header">
             <p style="font-size:0.75rem;opacity:0.8;text-transform:uppercase;letter-spacing:2px;margin-bottom:0.3rem">CINEMA PREMIUM</p>
-            <h3>${movie.title}</h3>
+            <h3>${escapeHtml(movie.title)}</h3>
           </div>
           <div class="ticket-body">
             <div class="ticket-field">
@@ -156,11 +158,11 @@
             </div>
             <div class="ticket-field">
               <label>Sala</label>
-              <span>${room ? room.name + ' (' + room.type + ')' : '-'}</span>
+              <span>${room ? escapeHtml(room.name) + ' (' + escapeHtml(room.type) + ')' : '-'}</span>
             </div>
             <div class="ticket-field">
               <label>Formato</label>
-              <span>${room ? room.type : '-'}</span>
+              <span>${room ? escapeHtml(room.type) : '-'}</span>
             </div>
             <div class="ticket-field">
               <label>Asientos</label>
@@ -218,7 +220,7 @@
         <div class="ticket" id="ticket-card">
           <div class="ticket-header">
             <p style="font-size:0.75rem;opacity:0.8;text-transform:uppercase;letter-spacing:2px;margin-bottom:0.3rem">CINEMA PREMIUM - RESERVA</p>
-            <h3>${movie.title}</h3>
+            <h3>${escapeHtml(movie.title)}</h3>
           </div>
           <div class="ticket-body">
             <div class="ticket-field">
@@ -231,11 +233,11 @@
             </div>
             <div class="ticket-field">
               <label>Sala</label>
-              <span>${room ? room.name + ' (' + room.type + ')' : '-'}</span>
+              <span>${room ? escapeHtml(room.name) + ' (' + escapeHtml(room.type) + ')' : '-'}</span>
             </div>
             <div class="ticket-field">
               <label>Formato</label>
-              <span>${room ? room.type : '-'}</span>
+              <span>${room ? escapeHtml(room.type) : '-'}</span>
             </div>
             <div class="ticket-field">
               <label>Asientos</label>
