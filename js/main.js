@@ -256,7 +256,7 @@ function escapeHtml(str) {
 
 function handleImgError(img) {
   img.onerror = null;
-  img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='185' height='278'%3E%3Crect fill='%231a1a1a' width='185' height='278'/%3E%3Ctext fill='%23555' font-size='14' text-anchor='middle' x='92' y='143'%3ESin Foto%3C/text%3E%3C/svg%3E";
+  img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='185' height='278'%3E%3Crect fill='%232a2a2a' width='185' height='278' rx='8'/%3E%3Ccircle cx='92' cy='95' r='40' fill='%23444'/%3E%3Cellipse cx='92' cy='240' rx='60' ry='55' fill='%23444'/%3E%3C/svg%3E";
 }
 
 function getParam(name) {
