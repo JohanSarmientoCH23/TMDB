@@ -1938,3 +1938,9 @@ img.lazy-loaded {
     grid-template-columns: 1fr;
   }
 }
+
+/* Cast member clickable */
+.cast-member { transition: transform 0.2s ease; }
+.cast-member:hover { transform: scale(1.05); }
+.cast-member:active { transform: scale(0.97); }
+}

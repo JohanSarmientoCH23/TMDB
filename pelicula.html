@@ -163,13 +163,17 @@
           <div class="detail-credits">
             <h3>Reparto Principal</h3>
             <div class="detail-cast">
-              ${cast.map(c => `
-                <div class="cast-member">
-                  <img src="${TMDB.getProfileURL(c.profile_path)}" alt="${c.name}" loading="lazy">
-                  <div class="cast-member-name">${c.name}</div>
-                  <div class="cast-member-char">${c.character || ''}</div>
-                </div>
-              `).join('')}
+              ${cast.map(c => {
+                const actorImg = TMDB.getProfileURL(c.profile_path);
+                const actorName = escapeHtml(c.name);
+                const actorChar = escapeHtml(c.character || '');
+                return `
+                <div class="cast-member" onclick="openActorDetail(${c.id})" style="cursor:pointer" title="Ver detalle de ${actorName}">
+                  <img src="${actorImg}" alt="${actorName}" loading="lazy" onerror="handleImgError(this)">
+                  <div class="cast-member-name">${actorName}</div>
+                  <div class="cast-member-char">${actorChar}</div>
+                </div>`;
+              }).join('')}
             </div>
           </div>` : ''}
         </div>
@@ -330,6 +334,63 @@
           if (btn) btn.classList.add('active');
         }
       } catch {}
+    }
+
+    async function openActorDetail(personId) {
+      if (!personId) return;
+      showModal('Actor', '<div style="text-align:center;padding:2rem"><div class="spinner"></div></div>');
+      try {
+        const person = await TMDB.getPersonDetails(personId);
+        const photo = TMDB.getProfileURL(person.profile_path);
+        const name = escapeHtml(person.name || 'Desconocido');
+        const bio = escapeHtml(person.biography || 'Biografía no disponible.');
+        const birthday = person.birthday || null;
+        const deathday = person.deathday || null;
+        const place = escapeHtml(person.place_of_birth || '');
+        const gender = person.gender === 1 ? 'Femenino' : person.gender === 2 ? 'Masculino' : '';
+
+        let credits = (person.combined_credits?.cast || person.combined_credits?.crew || []);
+        credits = credits.filter(c => c.poster_path).sort((a, b) => (b.release_date || '').localeCompare(a.release_date || '')).slice(0, 12);
+
+        let html = '<div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start">';
+        html += `<img src="${photo}" alt="${name}" style="width:120px;height:180px;object-fit:cover;border-radius:12px;flex-shrink:0" onerror="handleImgError(this)">`;
+        html += '<div style="flex:1;min-width:200px">';
+        html += `<h2 style="font-family:var(--font-heading);font-size:1.3rem;margin-bottom:0.5rem">${name}</h2>`;
+        if (person.also_known_as && person.also_known_as.length) {
+          html += `<p style="font-size:0.8rem;color:var(--on-background-dim);margin-bottom:0.5rem"><em>También conocido como:</em> ${escapeHtml(person.also_known_as.slice(0,3).join(', '))}</p>`;
+        }
+        const metaItems = [];
+        if (birthday) metaItems.push(`<span>🎂 ${formatDateFull(birthday)}${deathday ? ' — ✝ ' + formatDateFull(deathday) : ''}</span>`);
+        if (place) metaItems.push(`<span>📍 ${place}</span>`);
+        if (gender) metaItems.push(`<span>👤 ${gender}</span>`);
+        if (metaItems.length) {
+          html += `<div style="display:flex;flex-wrap:wrap;gap:0.8rem;font-size:0.8rem;color:var(--on-background-dim);margin-bottom:0.8rem">${metaItems.join('')}</div>`;
+        }
+        html += `<p style="font-size:0.85rem;line-height:1.6;color:var(--on-background);max-height:150px;overflow-y:auto">${bio}</p>`;
+        html += '</div></div>';
+
+        if (credits.length) {
+          html += '<h3 style="font-family:var(--font-heading);font-size:1rem;margin-top:1.5rem;margin-bottom:0.8rem">Filmografía</h3>';
+          html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:0.8rem">';
+          credits.forEach(c => {
+            const poster = TMDB.getPosterURL(c.poster_path);
+            const title = escapeHtml(c.title || c.name || '');
+            const year = c.release_date ? c.release_date.substring(0, 4) : '';
+            const character = escapeHtml(c.character || '');
+            html += `<div onclick="closeModal();window.location.href='pelicula.html?id=${c.id}'" style="cursor:pointer;text-align:center">`;
+            html += `<img src="${poster}" alt="${title}" style="width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:8px" loading="lazy" onerror="handleImgError(this)">`;
+            html += `<div style="font-size:0.7rem;font-weight:500;margin-top:0.3rem;line-height:1.2">${title}</div>`;
+            if (year) html += `<div style="font-size:0.65rem;color:var(--on-background-dim)">${year}</div>`;
+            if (character) html += `<div style="font-size:0.65rem;color:var(--primary);font-style:italic">${character}</div>`;
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+
+        showModal(name, html);
+      } catch (err) {
+        showModal('Actor', renderEmptyState('No se pudo cargar la información del actor'));
+      }
     }
 
     loadMovie();

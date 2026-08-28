@@ -249,6 +249,16 @@ function setupNavbarScroll() {
   }
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function handleImgError(img) {
+  img.onerror = null;
+  img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='185' height='278'%3E%3Crect fill='%231a1a1a' width='185' height='278'/%3E%3Ctext fill='%23555' font-size='14' text-anchor='middle' x='92' y='143'%3ESin Foto%3C/text%3E%3C/svg%3E";
+}
+
 function getParam(name) {
   return new URLSearchParams(window.location.search).get(name);
 }
