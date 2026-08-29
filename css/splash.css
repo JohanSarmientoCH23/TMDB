@@ -1,0 +1,116 @@
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #070514;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+.splash-hide {
+  opacity: 0;
+  visibility: hidden;
+}
+.splash-content {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+.splash-logo {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.splash-ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid transparent;
+  border-top-color: #7c3aed;
+  border-radius: 50%;
+  animation: splashSpin 1.5s linear infinite;
+}
+.splash-ring-2 {
+  inset: 10px;
+  border-top-color: #a855f7;
+  animation-duration: 2s;
+  animation-direction: reverse;
+}
+.splash-ring-3 {
+  inset: 20px;
+  border-top-color: #00f0ff;
+  animation-duration: 2.5s;
+}
+@keyframes splashSpin {
+  to { transform: rotate(360deg); }
+}
+.splash-brand {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #b388ff;
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 20px rgba(179, 136, 255, 0.5);
+  position: relative;
+  z-index: 1;
+}
+.splash-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6rem;
+  color: #00f0ff;
+  letter-spacing: 0.5em;
+  margin-top: 0.2rem;
+  opacity: 0.8;
+  position: relative;
+  z-index: 1;
+}
+.splash-loader {
+  width: 200px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  margin: 0 auto 1rem;
+  overflow: hidden;
+}
+.splash-bar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #00f0ff);
+  border-radius: 3px;
+  animation: splashLoad 2s ease-in-out forwards;
+  box-shadow: 0 0 10px rgba(126, 56, 183, 0.6);
+}
+@keyframes splashLoad {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+.splash-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.1em;
+}
+.splash-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.splash-particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #b388ff;
+  border-radius: 50%;
+  animation: splashFloat 3s ease-in-out infinite;
+}
+@keyframes splashFloat {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0; }
+  50% { transform: translateY(-80px) scale(1.5); opacity: 0.8; }
+}

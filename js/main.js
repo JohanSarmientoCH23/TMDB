@@ -32,7 +32,16 @@ function generateCode(prefix = 'TKT') {
   return `${prefix}-${code}`;
 }
 
+let _toastTimestamps = [];
+const TOAST_RATE_LIMIT = 3;
+const TOAST_RATE_WINDOW = 6000;
+
 function showToast(message, type = 'info') {
+  const now = Date.now();
+  _toastTimestamps = _toastTimestamps.filter(t => now - t < TOAST_RATE_WINDOW);
+  if (_toastTimestamps.length >= TOAST_RATE_LIMIT) return;
+  _toastTimestamps.push(now);
+
   let container = document.querySelector('.toast-container');
   if (!container) {
     container = document.createElement('div');
@@ -51,7 +60,7 @@ function showToast(message, type = 'info') {
   toast.className = `toast ${type}`;
   toast.innerHTML = `
     <div class="toast-icon">${icons[type] || icons.info}</div>
-    <div class="toast-message">${message}</div>
+    <div class="toast-message">${escapeHtml(message)}</div>
     <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
   `;
   container.appendChild(toast);
@@ -71,7 +80,7 @@ function showModal(title, content, actions = '') {
   overlay.innerHTML = `
     <div class="modal">
       <div class="modal-header">
-        <h3>${title}</h3>
+        <h3>${escapeHtml(title)}</h3>
         <button class="modal-close" onclick="closeModal()">&times;</button>
       </div>
       <div class="modal-body">${content}</div>
@@ -125,35 +134,14 @@ function renderEmptyState(message = 'No se encontraron resultados', icon = '🎬
   return `
     <div class="empty-state">
       <div style="font-size:3rem;margin-bottom:1rem;opacity:0.3">${icon}</div>
-      <h3>${message}</h3>
+      <h3>${escapeHtml(message)}</h3>
     </div>
   `;
 }
 
-function renderMovieCard(movie, options = {}) {
-  const poster = TMDB.getPosterURL(movie.poster_path);
-  const title = movie.title || movie.name || 'Sin título';
-  const rating = TMDB.formatRating(movie.vote_average);
-  const year = movie.release_date ? new Date(movie.release_date).getFullYear() : '';
-
-  return `
-    <div class="movie-card" data-movie-id="${movie.id}" onclick="window.location.href='pelicula.html?id=${movie.id}'">
-      <div class="movie-card-poster">
-        <img src="${poster}" alt="${title}" loading="lazy">
-        <div class="quick-view">
-          <span class="quick-view-title">${title}</span>
-          <span class="quick-view-btn">Ver detalles</span>
-        </div>
-      </div>
-      <div class="movie-card-info">
-        <div class="movie-card-title">${title}</div>
-        <div class="movie-card-meta">
-          <span class="movie-card-rating">★ ${rating}</span>
-          <span>${year}</span>
-        </div>
-      </div>
-    </div>
-  `;
+function renderMovieCard(movie) {
+  const card = CMovieCard.create(movie);
+  return card.outerHTML;
 }
 
 function renderFunctionCard(func, room) {
@@ -169,8 +157,8 @@ function renderFunctionCard(func, room) {
       </div>
       <div class="function-time">${func.time}</div>
       <div class="function-room">
-        <span class="function-room-name">${room ? room.name : 'Sala'}</span>
-        <span class="function-room-type">${room ? room.type : 'Standard'}</span>
+        <span class="function-room-name">${room ? escapeHtml(room.name) : 'Sala'}</span>
+        <span class="function-room-type">${room ? escapeHtml(room.type) : 'Standard'}</span>
       </div>
       <div class="function-price">${formatCurrency(func.price)}</div>
       <button class="btn btn-primary btn-sm">Seleccionar</button>
@@ -179,46 +167,16 @@ function renderFunctionCard(func, room) {
 }
 
 function renderMiniTicket(ticket, movie, func, room) {
-  const poster = movie ? TMDB.getPosterURL(movie.poster_path) : '';
-  const movieTitle = movie ? movie.title : 'Película';
-  const roomName = room ? room.name : 'Sala';
-
-  return `
-    <div class="mini-ticket" onclick="window.location.href='confirmacion.html?ticketId=${ticket.id}'">
-      <div class="mini-ticket-poster">
-        <img src="${poster}" alt="${movieTitle}" loading="lazy">
-      </div>
-      <div class="mini-ticket-info">
-        <h4>${movieTitle}</h4>
-        <p>${func ? formatDate(func.date) : ''} • ${func ? func.time : ''}</p>
-        <p>${roomName} • ${ticket.quantity} entrada${ticket.quantity > 1 ? 's' : ''}</p>
-        <span class="mini-ticket-code">${ticket.code}</span>
-      </div>
-    </div>
-  `;
+  const el = CMiniTicket.create(ticket, movie, func, room);
+  return el.outerHTML;
 }
 
 function updateNavAuth() {
   const navUser = document.getElementById('nav-user-area');
   if (!navUser) return;
-
-  if (Auth.isLoggedIn()) {
-    const user = Auth.getUser();
-    const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    const adminLink = Auth.isAdmin() ? `<a href="admin.html" class="nav-links-link">Admin</a>` : '';
-    navUser.innerHTML = `
-      ${adminLink}
-      <div class="nav-user" onclick="window.location.href='perfil.html'">
-        <div class="nav-user-avatar">${initials}</div>
-        <span class="nav-user-name">${user.name.split(' ')[0]}</span>
-      </div>
-    `;
-  } else {
-    navUser.innerHTML = `
-      <a href="login.html" class="btn btn-secondary btn-sm">Iniciar Sesión</a>
-      <a href="register.html" class="btn btn-primary btn-sm">Registrarse</a>
-    `;
-  }
+  const badge = CUserBadge.create(Auth.getUser(), Auth.isLoggedIn());
+  navUser.innerHTML = '';
+  navUser.appendChild(badge);
 }
 
 function setupMobileNav() {
@@ -240,6 +198,26 @@ function setupNavbarScroll() {
   }
 }
 
+function handleImgError(img) {
+  img.onerror = null;
+  img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='185' height='278'%3E%3Crect fill='%231a1a1a' width='185' height='278'/%3E%3Ctext fill='%23555' font-size='14' text-anchor='middle' x='92' y='143'%3ESin Foto%3C/text%3E%3C/svg%3E";
+}
+
 function getParam(name) {
   return new URLSearchParams(window.location.search).get(name);
+}
+
+function renderTo(selector, html) {
+  const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
+  if (!el) return;
+  el.innerHTML = html;
+  if (typeof LazyLoad !== 'undefined') {
+    LazyLoad.observe(el);
+  }
+}
+
+function initLazyLoad() {
+  if (typeof LazyLoad !== 'undefined') {
+    LazyLoad.observeAll();
+  }
 }
