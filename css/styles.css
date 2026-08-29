@@ -1790,3 +1790,38 @@ input, select, textarea { font-family: var(--font-body); outline: none; }
 .table-btn:hover { background: rgba(255, 255, 255, 0.1); }
 .table-btn.edit:hover { background: rgba(0, 114, 215, 0.15); }
 .table-btn.delete:hover { background: rgba(239, 68, 68, 0.15); }
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  border-bottom: 1px solid var(--g-border);
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  padding: 0.6rem 1.2rem;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  color: var(--g-text-dim);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  bottom: -1px;
+}
+
+.tab-btn:hover {
+  color: var(--g-text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tab-btn.active {
+  color: var(--g-purple-light);
+  background: var(--g-700);
+  border-color: var(--g-border);
+  border-bottom-color: var(--g-700);
+}
