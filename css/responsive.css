@@ -9,7 +9,7 @@
 @media (max-width: 1024px) {
   .nav-links { display: none; }
   .nav-mobile-toggle { display: block; }
-  
+
   .nav-links.mobile-open {
     display: flex;
     flex-direction: column;
@@ -17,15 +17,17 @@
     top: 70px;
     left: 0;
     right: 0;
-    background: rgba(19,19,19,0.98);
+    background: rgba(10, 11, 16, 0.98);
+    backdrop-filter: blur(20px);
     padding: 1rem 2rem;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid var(--g-border);
     gap: 0.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   }
 
   .nav-links.mobile-open a {
     padding: 0.8rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid var(--g-border);
   }
 
   .admin-sidebar {
@@ -35,13 +37,10 @@
   }
 
   .admin-sidebar.open { transform: translateX(0); }
-
   .admin-content { margin-left: 0; }
-
   .admin-page-header { flex-wrap: wrap; gap: 1rem; }
 
   .hero-title { font-size: 2.5rem; }
-
   .featured-row { grid-template-columns: 1fr; }
   .featured-poster { max-width: 200px; margin: 0 auto; }
 
@@ -65,7 +64,7 @@
     gap: 1rem;
   }
 
-  .checkout-container { grid-template-columns: 1fr; }
+  .checkout-grid { grid-template-columns: 1fr; }
 
   #seat-layout { grid-template-columns: 1fr !important; }
   .seat-layout-grid { grid-template-columns: 1fr !important; }
@@ -75,8 +74,9 @@
     gap: 0.8rem;
   }
 
-  .seat { width: 32px; height: 32px; font-size: 0.5rem; }
-  .seat-row { gap: 0.3rem; }
+  .seat { width: 18px; height: 24px; }
+  .seat-row { gap: 2px; }
+  .seat-row-label { width: 16px; font-size: 0.55rem; }
 
   .auth-card { padding: 2rem 1.5rem; }
 
@@ -85,7 +85,6 @@
   .ticket-body { grid-template-columns: 1fr; }
 
   .admin-stats { grid-template-columns: 1fr 1fr; }
-
   .admin-table { font-size: 0.8rem; }
   .admin-table th,
   .admin-table td { padding: 0.6rem 0.8rem; }
@@ -95,6 +94,9 @@
   .section-header { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
 
   .carousel-btn { display: none; }
+
+  .action-choice-grid { grid-template-columns: 1fr; }
+  .payment-options { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 480px) {
@@ -110,8 +112,8 @@
   }
 
   .seat-map-container { padding: 1rem 0; }
-  .seat { width: 28px; height: 28px; font-size: 0.45rem; }
-  .seat-row-label { width: 20px; font-size: 0.7rem; }
+  .seat { width: 16px; height: 22px; }
+  .seat-row-label { width: 14px; font-size: 0.5rem; }
 
   .function-card { padding: 1rem; }
 
@@ -129,6 +131,16 @@
   .detail-content { gap: 1.5rem; }
   .detail-poster { width: 150px; }
   .detail-title { font-size: 1.5rem; }
+
+  .checkout-title { font-size: 1.3rem; }
+  .checkout-card { padding: 1rem; }
+  .order-summary { padding: 1rem; }
+
+  .ticket-header h3 { font-size: 1.1rem; }
+  .ticket-body { padding: 1rem; }
+
+  .mini-ticket { padding: 0.8rem; }
+  .mini-ticket-poster { width: 60px; height: 85px; }
 }
 
 /* Mobile scroll for seat map */
