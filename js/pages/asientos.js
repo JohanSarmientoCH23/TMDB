@@ -52,23 +52,36 @@ function renderSeatMap() {
   sortedRows.forEach(rowLabel => {
     const rowSeats = rows[rowLabel].sort((a, b) => a.number - b.number);
     html += `<div class="seat-row"><span class="seat-row-label">${escapeHtml(rowLabel)}</span>`;
+
     rowSeats.forEach(seat => {
       const fSeat = functionSeats.find(fs => fs.seatId === seat.id);
       const status = fSeat ? fSeat.status : 'available';
-      const seatClass = `seat seat-${status}`;
-      const tooltip = `${escapeHtml(seat.seatCode)} - ${escapeHtml(seat.location)} (${escapeHtml(seat.type)})`;
-      html += `<div class="${seatClass}" data-seat-id="${seat.id}" data-status="${status}" data-code="${escapeHtml(seat.seatCode)}" data-row="${escapeHtml(seat.row)}" data-number="${seat.number}" data-location="${escapeHtml(seat.location)}" data-type="${escapeHtml(seat.type)}" title="${tooltip}" onclick="toggleSeat(this)"></div>`;
+      const seatType = seat.type || 'standard';
+      const seatClass = `seat seat-${status} seat-type-${seatType}`;
+      const price = getSeatPrice(seatType);
+      const tooltip = `${escapeHtml(seat.seatCode)} - ${escapeHtml(seat.location)} (${escapeHtml(seatType)})`;
+
+      html += `
+        <div
+          class="${seatClass}"
+          data-seat-id="${seat.id}"
+          data-status="${status}"
+          data-code="${escapeHtml(seat.seatCode)}"
+          data-row="${escapeHtml(seat.row)}"
+          data-number="${seat.number}"
+          data-location="${escapeHtml(seat.location)}"
+          data-type="${escapeHtml(seatType)}"
+          data-price="${price}"
+          title="${tooltip}"
+          onclick="toggleSeat(this)">
+        </div>
+      `;
     });
-    html += `<span class="seat-row-label">${escapeHtml(rowLabel)}</span></div>`;
+
+    html += `</div>`;
   });
 
   html += `
-      </div>
-      <div class="seat-legend">
-        <div class="seat-legend-item"><div class="seat-legend-dot available"></div>Disponible</div>
-        <div class="seat-legend-item"><div class="seat-legend-dot selected"></div>Seleccionado</div>
-        <div class="seat-legend-item"><div class="seat-legend-dot reserved"></div>Reservado</div>
-        <div class="seat-legend-item"><div class="seat-legend-dot sold"></div>Vendido</div>
       </div>
     </div>
   `;
@@ -89,6 +102,7 @@ function toggleSeat(el) {
   const seatNumber = el.dataset.number;
   const seatLocation = el.dataset.location;
   const seatType = el.dataset.type;
+  const price = Number(el.dataset.price || getSeatPrice(seatType));
 
   const idx = selectedSeats.findIndex(s => s.seatId === seatId);
   if (idx >= 0) {
@@ -96,37 +110,105 @@ function toggleSeat(el) {
     el.className = 'seat seat-available';
     el.dataset.status = 'available';
   } else {
-    selectedSeats.push({ seatId, seatCode, row: seatRow, number: seatNumber, location: seatLocation, type: seatType });
+    selectedSeats.push({
+      seatId,
+      seatCode,
+      seatRow,
+      seatNumber,
+      seatLocation,
+      type: seatType,
+      price
+    });
     el.className = 'seat seat-selected';
     el.dataset.status = 'selected';
   }
-
   renderSummary();
+}
+
+function getSeatPrice(type) {
+  const base = Number(funcData.price);
+
+  switch (type) {
+    case 'premium':
+      return Math.round(base * 1.25);
+
+    case 'vip':
+      return Math.round(base * 1.50);
+
+    default:
+      return base;
+  }
 }
 
 function renderSummary() {
   const count = selectedSeats.length;
-  const total = count * funcData.price;
+
+  const subtotal = selectedSeats.reduce(
+    (sum, seat) => sum + seat.price,
+    0
+  );
 
   document.getElementById('summary-panel').innerHTML = `
     <div class="purchase-summary">
       <h3>Resumen de Compra</h3>
-      <div class="summary-row"><span class="summary-label">Película</span><span>${escapeHtml(movieData.title)}</span></div>
-      <div class="summary-row"><span class="summary-label">Fecha</span><span>${formatDate(funcData.date)}</span></div>
-      <div class="summary-row"><span class="summary-label">Hora</span><span>${funcData.time}</span></div>
-      <div class="summary-row"><span class="summary-label">Sala</span><span>${escapeHtml(roomData.name)} (${escapeHtml(roomData.type)})</span></div>
+
       <div class="summary-row">
-        <span class="summary-label">Asientos</span>
-        <span>${count}</span>
+        <span class="summary-label">Película</span>
+        <span>${escapeHtml(movieData.title)}</span>
       </div>
+
+      <div class="summary-row">
+        <span class="summary-label">Fecha</span>
+        <span>${formatDate(funcData.date)}</span>
+      </div>
+
+      <div class="summary-row">
+        <span class="summary-label">Hora</span>
+        <span>${funcData.time}</span>
+      </div>
+
+      <div class="summary-row">
+        <span class="summary-label">Sala</span>
+        <span>${escapeHtml(roomData.name)}</span>
+      </div>
+
       ${count > 0 ? `
-      <div class="selected-seats-list">
-        ${selectedSeats.map(s => `<span class="seat-tag">${escapeHtml(s.seatCode)}</span>`).join('')}
-      </div>` : ''}
-      <div class="summary-row"><span class="summary-label">Precio unitario</span><span>${formatCurrency(funcData.price)}</span></div>
-      <div class="summary-row total"><span>Total</span><span>${formatCurrency(total)}</span></div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:1.5rem" onclick="proceedToCheckout()" ${count === 0 ? 'disabled' : ''}>Continuar</button>
-      ${count === 0 ? '<p style="text-align:center;font-size:0.8rem;color:var(--on-background-dim);margin-top:0.8rem">Selecciona al menos un asiento</p>' : ''}
+        <div class="selected-seats-list">
+          ${selectedSeats.map(s => `
+            <div class="seat-summary-item">
+              <span class="seat-tag">${escapeHtml(s.seatCode)}</span>
+              <span>
+                ${escapeHtml(s.type.toUpperCase())}
+                ${formatCurrency(s.price)}
+              </span>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      <div class="summary-row">
+        <span class="summary-label">Subtotal</span>
+        <span>${formatCurrency(subtotal)}</span>
+      </div>
+
+      <div class="summary-row total">
+        <span>Total</span>
+        <span>${formatCurrency(subtotal)}</span>
+      </div>
+
+      <button
+        class="btn btn-primary"
+        style="width:100%;justify-content:center;margin-top:1.5rem"
+        onclick="proceedToCheckout()"
+        ${count === 0 ? 'disabled' : ''}>
+        Continuar
+      </button>
+
+      ${count === 0 ? `
+        <p style="text-align:center;font-size:0.8rem;color:var(--on-background-dim);margin-top:0.8rem">
+          Selecciona al menos un asiento
+        </p>
+      ` : ''}
     </div>
   `;
 }
@@ -184,7 +266,7 @@ function storeSelection(actionType) {
     date: funcData.date,
     time: funcData.time,
     price: funcData.price,
-    total: selectedSeats.length * funcData.price
+    total: selectedSeats.reduce((sum, seat) => sum + seat.price, 0)
   };
 }
 

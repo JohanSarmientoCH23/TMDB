@@ -9,11 +9,7 @@
     let discount = 0;
     let couponApplied = false;
 
-    const PROMO_CODES = {
-      'CINEMA20': { type: 'percent', value: 20, label: '20% de descuento' },
-      'AHORRO5000': { type: 'fixed', value: 5000, label: '$5.000 de descuento' },
-      'ESTRENO': { type: 'percent', value: 15, label: '15% de descuento' }
-    };
+    let PROMO_CODES = [];
 
     async function loadCheckout() {
       if (!checkoutData) {
@@ -108,27 +104,51 @@
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                 Método de pago
               </h2>
-              <div class="payment-options">
-                <label class="payment-option selected" id="opt-credit_card">
-                  <input type="radio" name="payment-method" value="credit_card" checked onchange="handlePaymentChange(this)">
-                  <div class="payment-option-content">
-                    <span class="payment-option-icon">💳</span>
-                    <span class="payment-option-label">Tarjeta de Crédito</span>
-                  </div>
-                </label>
-                <label class="payment-option" id="opt-debit_card">
-                  <input type="radio" name="payment-method" value="debit_card" onchange="handlePaymentChange(this)">
-                  <div class="payment-option-content">
-                    <span class="payment-option-icon">💳</span>
-                    <span class="payment-option-label">Tarjeta de Débito</span>
-                  </div>
-                </label>
-                <label class="payment-option" id="opt-cash">
-                  <input type="radio" name="payment-method" value="cash" onchange="handlePaymentChange(this)">
-                  <div class="payment-option-content">
-                    <span class="payment-option-icon">💵</span>
-                    <span class="payment-option-label">Efectivo</span>
-                  </div>
+            <div class="payment-options">
+              <label class="payment-option selected" id="opt-card">
+                <input
+                  type="radio"
+                  name="payment-method"
+                  value="card"
+                  checked
+                  onchange="handlePaymentChange(this)"
+                >
+
+                <div class="payment-option-content">
+                  <span class="payment-option-icon">💳</span>
+                  <span class="payment-option-label">Tarjeta</span>
+                </div>
+              </label>
+
+              <label class="payment-option" id="opt-cash">
+                <input
+                  type="radio"
+                  name="payment-method"
+                  value="cash"
+                  onchange="handlePaymentChange(this)"
+                >
+
+                <div class="payment-option-content">
+                  <span class="payment-option-icon">💵</span>
+                  <span class="payment-option-label">Efectivo</span>
+                </div>
+              </label>
+
+              <label class="payment-option" id="opt-pse">
+                <input
+                  type="radio"
+                  name="payment-method"
+                  value="pse"
+                  onchange="handlePaymentChange(this)"
+                >
+
+                <div class="payment-option-content">
+                  <span class="payment-option-icon">🏦</span>
+                  <span class="payment-option-label">PSE</span>
+                </div>
+              </label>
+
+            </div>
                 </label>
               </div>
               <div id="card-fields">
@@ -204,7 +224,7 @@
               <div class="order-seats">
                 <div class="order-seats-label">Asientos seleccionados</div>
                 <div class="order-seats-list">
-                  ${d.seats.map(s => `<div class="seat-badge"><span class="seat-badge-dot"></span>${escapeHtml(s.seatCode)}</div>`).join('')}
+                  ${d.seats.map(s => `<div class="seat-badge"><span class="seat-badge-dot"></span>${escapeHtml(s.seatCode)}<small>${escapeHtml((s.type || 'standard').toUpperCase())}- ${formatCurrency(s.price)}</small></div>`).join('')}
                 </div>
                 <div class="order-seats-count">${d.seats.length} entrada${d.seats.length > 1 ? 's' : ''}</div>
               </div>
@@ -262,7 +282,7 @@
       document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
       radio.closest('.payment-option').classList.add('selected');
       const cardFields = document.getElementById('card-fields');
-      if (cardFields) cardFields.style.display = radio.value === 'cash' ? 'none' : 'block';
+      if (cardFields) {cardFields.style.display = radio.value === 'card' ? 'block' : 'none';}
     }
 
     function setupCardFormatting() {
@@ -284,24 +304,69 @@
     }
 
     function applyCoupon() {
-      const code = document.getElementById('coupon-input').value.trim().toUpperCase();
+      async function applyCoupon() {
+      const code = document
+      .getElementById('coupon-input')
+      .value
+      .trim()
+      .toUpperCase();
+
       const msgEl = document.getElementById('coupon-message');
 
-      if (!code) { msgEl.innerHTML = '<span class="coupon-error">Ingresa un código</span>'; return; }
-      if (couponApplied) { msgEl.innerHTML = '<span class="coupon-error">Ya hay un cupón aplicado</span>'; return; }
+      if (!code) {
+         msgEl.innerHTML =
+        '<span class="coupon-error">Ingresa un código</span>';
+      return;
+     }
 
-      const promo = PROMO_CODES[code];
-      if (!promo) { msgEl.innerHTML = '<span class="coupon-error">Código no válido</span>'; return; }
-
-      if (promo.type === 'percent') {
-        discount = Math.round(checkoutData.total * promo.value / 100);
-      } else {
-        discount = Math.min(promo.value, checkoutData.total);
+      if (couponApplied) {
+         msgEl.innerHTML =
+        '<span class="coupon-error">Ya hay un cupón aplicado</span>';
+     return;
       }
-      couponApplied = true;
-      msgEl.innerHTML = `<span class="coupon-success">✓ ${promo.label} aplicado</span>`;
-      renderPage();
-      document.getElementById('coupon-message').innerHTML = `<span class="coupon-success">✓ ${promo.label} aplicado</span>`;
+
+     try {
+        const promo = await API.getPromotion(code);
+
+       if (!promo) {
+        msgEl.innerHTML =
+        '<span class="coupon-error">Código promocional inválido.</span>';
+      return;
+     }
+
+      if (!promo.active) {
+        msgEl.innerHTML =
+        '<span class="coupon-error">El código promocional está inactivo.</span>';
+      return;
+      }
+
+    discount = Math.round(
+      checkoutData.total * Number(promo.discount) / 100
+    );
+
+    couponApplied = true;
+
+    msgEl.innerHTML = 
+      <span class="coupon-success">
+        ✓ ${promo.discount}% de descuento aplicado
+      </span>
+    ;
+
+    renderPage();
+
+    document.getElementById('coupon-message').innerHTML = 
+      <span class="coupon-success">
+        ✓ ${promo.discount}% de descuento aplicado
+      </span>
+    ;
+
+    } catch (error) {
+     console.error(error);
+
+     msgEl.innerHTML =
+      '<span class="coupon-error">Error al consultar el código.</span>';
+    }
+
     }
 
     async function processAction() {
@@ -312,6 +377,8 @@
 
       if (!name) { showToast('Ingresa tu nombre', 'warning'); return; }
       if (!email) { showToast('Ingresa tu correo', 'warning'); return; }
+      if (isPurchase){ const selectedPayment = document.querySelector('input[name="payment-method"]:checked'); 
+      if (!selectedPayment) { showToast('Selecciona un método de pago', 'warning'); return; } }
 
       let paymentMethod = 'credit_card';
       if (isPurchase) {
@@ -422,5 +489,5 @@
         btn.textContent = isPurchase ? '💳 Comprar' : '🎟️ Confirmar Reserva';
       }
     }
-
+  }
     loadCheckout();
