@@ -34,6 +34,13 @@ const SEED_DATA = {
   reservations: [],
   purchases: [],
   tickets: [],
+
+  promotions: [
+    { id: 1, code: "CINE20", discount: 20, active: true },
+    { id: 2, code: "CINE10", discount: 10, active: true },
+    { id: 3, code: "INACTIVO", discount: 30, active: false }
+  ],
+
   ratings: [
     { id: 1, userId: 1, movieId: 550, rating: 5, comment: "Una obra maestra del cine.", createdAt: "2026-08-21T12:00:00Z" },
     { id: 2, userId: 1, movieId: 27205, rating: 4, comment: "Visualmente impresionante.", createdAt: "2026-08-22T10:00:00Z" }
@@ -278,6 +285,7 @@ const API = {
 
   // Asientos de funcion
   getFunctionSeats(functionId) { return findWhere('functionSeats', { functionId }); },
+  getPromotion(code) { return getCollection('promotions').find(promo => String(promo.code).toUpperCase() === String(code).toUpperCase()) || null;},
   updateFunctionSeat(id, data) { return updateItem('functionSeats', id, data); },
 
   // Reservas
@@ -285,6 +293,16 @@ const API = {
   getReservationsByUser(userId) { return findWhere('reservations', { userId }); },
   createReservation(data) { return createItem('reservations', data); },
   updateReservation(id, data) { return updateItem('reservations', id, data); },
+
+  // Promociones
+  getPromotions() {
+  return getCollection('promotions');
+  },
+
+  getPromotion(code) {
+  return getCollection('promotions')
+    .find(p => p.code.toUpperCase() === code.toUpperCase()) || null;
+  },
 
   // Compras
   getPurchases() { return getCollection('purchases'); },

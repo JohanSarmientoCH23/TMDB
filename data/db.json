@@ -42,5 +42,28 @@
   "favorites": [
     { "id": 1, "userId": 1, "movieId": 550, "createdAt": "2026-08-21T08:00:00Z" },
     { "id": 2, "userId": 1, "movieId": 27205, "createdAt": "2026-08-22T10:30:00Z" }
-  ]
+  ],
+  "promotions": [
+  {
+    "id": 1,
+    "code": "CINE20",
+    "discount": 20,
+    "active": true
+  },
+  {
+    "id": 2,
+    "code": "CINE10",
+    "discount": 10,
+    "active": true
+  },
+  {
+    "id": 3,
+    "code": "INACTIVO",
+    "discount": 30,
+    "active": false
+  }
+],
+"purchases": [],
+"tickets": [],
+"reservations": []
 }
