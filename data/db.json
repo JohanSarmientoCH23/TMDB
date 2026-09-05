@@ -52,15 +52,15 @@
   },
   {
     "id": 2,
-    "code": "CINE10",
-    "discount": 10,
-    "active": true
+    "code": "AHORRO5000",
+    "discount": 5000,
+    "active": false
   },
   {
     "id": 3,
-    "code": "INACTIVO",
-    "discount": 30,
-    "active": false
+    "code": "ESTRENO",
+    "discount": 15,
+    "active": true
   }
 ],
 "purchases": [],

@@ -86,6 +86,8 @@
 
     function renderTicket(ticket, func, room, movie, seatCodes) {
       const poster = movie.poster_path ? TMDB.getPosterURL(movie.poster_path) : '';
+      const seatsData = ticket.seats || [];
+      const paymentLabels = { card: 'Tarjeta', cash: 'Efectivo', pse: 'PSE' };
 
       document.getElementById('confirmation-content').innerHTML = `
         <div class="confirmation">
@@ -112,24 +114,40 @@
             </div>
             <div class="ticket-field">
               <label>Sala</label>
-              <span>${room ? escapeHtml(room.name) + ' (' + escapeHtml(room.type) + ')' : '-'}</span>
+              <span>${room ? escapeHtml(room.name) + (room.type === '3D' ? ' (3D)' : '') : '-'}</span>
             </div>
             <div class="ticket-field">
               <label>Formato</label>
-              <span>${room ? escapeHtml(room.type) : '-'}</span>
+              <span>${room && room.type === '3D' ? '3D' : '-'}</span>
             </div>
             <div class="ticket-field">
               <label>Asientos</label>
-              <span>${seatCodes.length > 0 ? seatCodes.join(', ') : '-'}</span>
+              <div>
+                ${seatsData.length > 0 ? seatsData.map(s =>
+                  `<div style="margin:0.2rem 0"><span class="seat-tag">${escapeHtml(s.seatCode)}</span> <span style="font-size:0.75rem;color:var(--on-background-dim)">${escapeHtml((s.type || 'standard').toUpperCase())} - ${formatCurrency(s.price)}</span></div>`
+                ).join('') : (seatCodes.length > 0 ? seatCodes.join(', ') : '-')}
+              </div>
             </div>
             <div class="ticket-field">
               <label>Cantidad</label>
               <span>${ticket.quantity} entrada${ticket.quantity > 1 ? 's' : ''}</span>
             </div>
+            ${ticket.discount > 0 ? `
+            <div class="ticket-field">
+              <label>Descuento</label>
+              <span style="color:var(--seat-available)">-${formatCurrency(ticket.discount)}</span>
+            </div>
+            ` : ''}
             <div class="ticket-field">
               <label>Total</label>
               <span style="color:var(--primary);font-size:1.2rem">${formatCurrency(ticket.total)}</span>
             </div>
+            ${ticket.paymentMethod ? `
+            <div class="ticket-field">
+              <label>Método de pago</label>
+              <span>${paymentLabels[ticket.paymentMethod] || ticket.paymentMethod}</span>
+            </div>
+            ` : ''}
             <div class="ticket-field">
               <label>Estado</label>
               <span class="badge badge-success">Activo</span>
@@ -160,6 +178,7 @@
 
     function renderReservation(reservation, func, room, movie, seatCodes) {
       const statusClass = reservation.status === 'RESERVADA' ? 'badge-warning' : reservation.status === 'PAGADA' ? 'badge-success' : 'badge-danger';
+      const seatsData = reservation.seats || [];
 
       document.getElementById('confirmation-content').innerHTML = `
         <div class="confirmation">
@@ -186,20 +205,30 @@
             </div>
             <div class="ticket-field">
               <label>Sala</label>
-              <span>${room ? escapeHtml(room.name) + ' (' + escapeHtml(room.type) + ')' : '-'}</span>
+              <span>${room ? escapeHtml(room.name) + (room.type === '3D' ? ' (3D)' : '') : '-'}</span>
             </div>
             <div class="ticket-field">
               <label>Formato</label>
-              <span>${room ? escapeHtml(room.type) : '-'}</span>
+              <span>${room && room.type === '3D' ? '3D' : '-'}</span>
             </div>
             <div class="ticket-field">
               <label>Asientos</label>
-              <span>${seatCodes.length > 0 ? seatCodes.join(', ') : '-'}</span>
+              <div>
+                ${seatsData.length > 0 ? seatsData.map(s =>
+                  `<div style="margin:0.2rem 0"><span class="seat-tag">${escapeHtml(s.seatCode)}</span> <span style="font-size:0.75rem;color:var(--on-background-dim)">${escapeHtml((s.type || 'standard').toUpperCase())} - ${formatCurrency(s.price)}</span></div>`
+                ).join('') : (seatCodes.length > 0 ? seatCodes.join(', ') : '-')}
+              </div>
             </div>
             <div class="ticket-field">
               <label>Cantidad</label>
               <span>${reservation.quantity} entrada${reservation.quantity > 1 ? 's' : ''}</span>
             </div>
+            ${reservation.discount > 0 ? `
+            <div class="ticket-field">
+              <label>Descuento</label>
+              <span style="color:var(--seat-available)">-${formatCurrency(reservation.discount)}</span>
+            </div>
+            ` : ''}
             <div class="ticket-field">
               <label>Total a pagar</label>
               <span style="color:var(--primary);font-size:1.2rem">${formatCurrency(reservation.total)}</span>

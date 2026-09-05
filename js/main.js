@@ -158,7 +158,7 @@ function renderFunctionCard(func, room) {
       <div class="function-time">${func.time}</div>
       <div class="function-room">
         <span class="function-room-name">${room ? escapeHtml(room.name) : 'Sala'}</span>
-        <span class="function-room-type">${room ? escapeHtml(room.type) : 'Standard'}</span>
+        ${room && room.type === '3D' ? `<span class="function-room-type">3D</span>` : ''}
       </div>
       <div class="function-price">${formatCurrency(func.price)}</div>
       <button class="btn btn-primary btn-sm">Seleccionar</button>

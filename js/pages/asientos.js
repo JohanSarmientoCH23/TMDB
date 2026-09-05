@@ -43,13 +43,39 @@ function renderSeatMap() {
 
   const sortedRows = Object.keys(rows).sort();
 
+  const basePrice = funcData ? funcData.price : 12000;
+  const stdPrice = basePrice;
+  const premPrice = Math.round(basePrice * 1.25);
+  const vipPrice = Math.round(basePrice * 1.50);
+
+  const zoneConfig = [
+    { rows: ['A', 'B', 'C'], label: 'Standard', price: stdPrice, css: 'standard' },
+    { rows: ['D', 'E'], label: 'Premium', price: premPrice, css: 'premium' },
+    { rows: ['F'], label: 'VIP', price: vipPrice, css: 'vip' }
+  ];
+
   let html = `
     <div class="seat-map-container">
       <div class="seat-screen">PANTALLA</div>
       <div class="seat-rows">
   `;
 
+  let currentZone = null;
+
   sortedRows.forEach(rowLabel => {
+    const zone = zoneConfig.find(z => z.rows.includes(rowLabel));
+    const zoneKey = zone ? zone.css : 'standard';
+
+    if (zoneKey !== currentZone) {
+      currentZone = zoneKey;
+      html += `
+        <div class="seat-zone-divider seat-zone-${zoneKey}">
+          <span class="seat-zone-label">${zone.label}</span>
+          <span class="seat-zone-price">${formatCurrency(zone.price)}</span>
+        </div>
+      `;
+    }
+
     const rowSeats = rows[rowLabel].sort((a, b) => a.number - b.number);
     html += `<div class="seat-row"><span class="seat-row-label">${escapeHtml(rowLabel)}</span>`;
 
@@ -59,7 +85,7 @@ function renderSeatMap() {
       const seatType = seat.type || 'standard';
       const seatClass = `seat seat-${status} seat-type-${seatType}`;
       const price = getSeatPrice(seatType);
-      const tooltip = `${escapeHtml(seat.seatCode)} - ${escapeHtml(seat.location)} (${escapeHtml(seatType)})`;
+      const tooltip = `${escapeHtml(seat.seatCode)} - ${escapeHtml(seat.location)} (${escapeHtml(seatType)}) - ${formatCurrency(price)}`;
 
       html += `
         <div
@@ -82,6 +108,17 @@ function renderSeatMap() {
   });
 
   html += `
+      </div>
+      <div class="seat-legend">
+        <div class="seat-legend-item"><div class="seat-legend-dot available"></div><span>Disponible</span></div>
+        <div class="seat-legend-item"><div class="seat-legend-dot selected"></div><span>Seleccionado</span></div>
+        <div class="seat-legend-item"><div class="seat-legend-dot reserved"></div><span>Reservado</span></div>
+        <div class="seat-legend-item"><div class="seat-legend-dot sold"></div><span>Vendido</span></div>
+      </div>
+      <div class="seat-legend-type">
+        <div class="seat-legend-type-item standard"><div class="seat-legend-type-dot standard"></div>Standard - ${formatCurrency(stdPrice)}</div>
+        <div class="seat-legend-type-item premium"><div class="seat-legend-type-dot premium"></div>Premium - ${formatCurrency(premPrice)}</div>
+        <div class="seat-legend-type-item vip"><div class="seat-legend-type-dot vip"></div>VIP - ${formatCurrency(vipPrice)}</div>
       </div>
     </div>
   `;
@@ -107,7 +144,7 @@ function toggleSeat(el) {
   const idx = selectedSeats.findIndex(s => s.seatId === seatId);
   if (idx >= 0) {
     selectedSeats.splice(idx, 1);
-    el.className = 'seat seat-available';
+    el.className = `seat seat-available seat-type-${seatType}`;
     el.dataset.status = 'available';
   } else {
     selectedSeats.push({
@@ -126,17 +163,11 @@ function toggleSeat(el) {
 }
 
 function getSeatPrice(type) {
-  const base = Number(funcData.price);
-
+  const base = funcData ? funcData.price : 12000;
   switch (type) {
-    case 'premium':
-      return Math.round(base * 1.25);
-
-    case 'vip':
-      return Math.round(base * 1.50);
-
-    default:
-      return base;
+    case 'premium': return Math.round(base * 1.25);
+    case 'vip': return Math.round(base * 1.50);
+    default: return base;
   }
 }
 
@@ -227,8 +258,8 @@ function proceedToCheckout() {
 }
 
 function showActionChoice() {
-  const total = selectedSeats.length * funcData.price;
-  const seatsList = selectedSeats.map(s => `<span class="seat-tag">${escapeHtml(s.seatCode)}</span>`).join('');
+  const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
+  const seatsList = selectedSeats.map(s => `<span class="seat-tag">${escapeHtml(s.seatCode)} <small>${escapeHtml(s.type.toUpperCase())} ${formatCurrency(s.price)}</small></span>`).join('');
 
   const content = `
     <div style="text-align:center;margin-bottom:1.5rem">

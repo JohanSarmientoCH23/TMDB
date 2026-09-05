@@ -15,7 +15,7 @@ const SEED_DATA = {
     { id: 1, name: "Sala 1", capacity: 48, type: "standard" },
     { id: 2, name: "Sala 2", capacity: 48, type: "standard" },
     { id: 3, name: "Sala 3", capacity: 48, type: "3D" },
-    { id: 4, name: "Sala 4 VIP", capacity: 36, type: "VIP" }
+    { id: 4, name: "Sala 4", capacity: 36, type: "VIP" }
   ],
   seats: [],
   functions: [
@@ -37,8 +37,8 @@ const SEED_DATA = {
 
   promotions: [
     { id: 1, code: "CINE20", discount: 20, active: true },
-    { id: 2, code: "CINE10", discount: 10, active: true },
-    { id: 3, code: "INACTIVO", discount: 30, active: false }
+    { id: 2, code: "AHORRO5000", discount: 5000, active: false },
+    { id: 3, code: "ESTRENO", discount: 15, active: true }
   ],
 
   ratings: [
@@ -58,26 +58,38 @@ function generateSeats() {
   let id = 1;
   const rows6 = ['A', 'B', 'C', 'D', 'E', 'F'];
 
+  // Salas 1 y 2: A-B-C standard, D-E premium, F vip
   for (const roomId of [1, 2]) {
     for (const row of rows6) {
       for (let num = 1; num <= 8; num++) {
         const loc = num <= 2 ? 'Izquierda' : num <= 6 ? 'Centro' : 'Derecha';
-        seats.push({ id: id++, roomId, row, number: num, seatCode: row + num, location: loc, type: 'standard' });
+        let type = 'standard';
+        if (row === 'D' || row === 'E') type = 'premium';
+        else if (row === 'F') type = 'vip';
+        seats.push({ id: id++, roomId, row, number: num, seatCode: row + num, location: loc, type });
       }
     }
   }
 
+  // Sala 3 (3D): A-B-C standard, D-E premium, F vip
   for (const row of rows6) {
     for (let num = 1; num <= 8; num++) {
       const loc = num <= 2 ? 'Izquierda' : num <= 6 ? 'Centro' : 'Derecha';
-      seats.push({ id: id++, roomId: 3, row, number: num, seatCode: row + num, location: loc, type: 'standard' });
+      let type = 'standard';
+      if (row === 'D' || row === 'E') type = 'premium';
+      else if (row === 'F') type = 'vip';
+      seats.push({ id: id++, roomId: 3, row, number: num, seatCode: row + num, location: loc, type });
     }
   }
 
-  for (const row of rows6.slice(0, 4)) {
+  // Sala 4 VIP: A-B-C standard, D-E premium, F vip
+  for (const row of rows6) {
     for (let num = 1; num <= 9; num++) {
       const loc = num <= 3 ? 'Izquierda' : num <= 6 ? 'Centro' : 'Derecha';
-      seats.push({ id: id++, roomId: 4, row, number: num, seatCode: row + num, location: loc, type: 'recliner' });
+      let type = 'standard';
+      if (row === 'D' || row === 'E') type = 'premium';
+      else if (row === 'F') type = 'vip';
+      seats.push({ id: id++, roomId: 4, row, number: num, seatCode: row + num, location: loc, type });
     }
   }
 
@@ -103,8 +115,15 @@ function generateFunctionSeats(functions, seats) {
 
 // --- Inicializar base de datos ---
 function initDB() {
-  if (localStorage.getItem(DB_KEY)) return;
   const seats = generateSeats();
+  if (localStorage.getItem(DB_KEY)) {
+    const db = getDB();
+    db.promotions = SEED_DATA.promotions;
+    db.seats = seats;
+    db.functionSeats = generateFunctionSeats(db.functions, seats);
+    saveDB(db);
+    return;
+  }
   const data = { ...SEED_DATA, seats };
   data.functionSeats = generateFunctionSeats(data.functions, seats);
   localStorage.setItem(DB_KEY, JSON.stringify(data));
@@ -285,7 +304,6 @@ const API = {
 
   // Asientos de funcion
   getFunctionSeats(functionId) { return findWhere('functionSeats', { functionId }); },
-  getPromotion(code) { return getCollection('promotions').find(promo => String(promo.code).toUpperCase() === String(code).toUpperCase()) || null;},
   updateFunctionSeat(id, data) { return updateItem('functionSeats', id, data); },
 
   // Reservas

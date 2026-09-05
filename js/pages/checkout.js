@@ -148,9 +148,7 @@
                 </div>
               </label>
 
-            </div>
-                </label>
-              </div>
+            </div></div>
               <div id="card-fields">
                 <div class="form-group">
                   <label for="card-number">Número de tarjeta *</label>
@@ -218,20 +216,20 @@
               </div>
               <div class="order-detail">
                 <div class="order-detail-icon">🎬</div>
-                <div><strong>${escapeHtml(d.roomName)}</strong><br><span class="text-dim">${escapeHtml(d.roomType)}</span></div>
+                <div><strong>${escapeHtml(d.roomName)}</strong>${d.roomType === '3D' ? `<br><span class="text-dim">3D</span>` : ''}</div>
               </div>
 
               <div class="order-seats">
                 <div class="order-seats-label">Asientos seleccionados</div>
                 <div class="order-seats-list">
-                  ${d.seats.map(s => `<div class="seat-badge"><span class="seat-badge-dot"></span>${escapeHtml(s.seatCode)}<small>${escapeHtml((s.type || 'standard').toUpperCase())}- ${formatCurrency(s.price)}</small></div>`).join('')}
+                  ${d.seats.map(s => `<div class="seat-badge"><span class="seat-badge-dot"></span>${escapeHtml(s.seatCode)} <small>${escapeHtml((s.type || 'standard').toUpperCase())} - ${formatCurrency(s.price)}</small></div>`).join('')}
                 </div>
                 <div class="order-seats-count">${d.seats.length} entrada${d.seats.length > 1 ? 's' : ''}</div>
               </div>
 
               <div class="order-pricing">
                 <div class="order-price-row">
-                  <span>${d.seats.length} × ${formatCurrency(d.price)}</span>
+                  <span>Subtotal (${d.seats.length} asiento${d.seats.length > 1 ? 's' : ''})</span>
                   <span>${formatCurrency(subtotal)}</span>
                 </div>
                 ${discount > 0 ? `
@@ -245,6 +243,13 @@
                   <span>${formatCurrency(total)}</span>
                 </div>
               </div>
+
+              ${isPurchase ? `
+              <div class="order-detail" style="margin-top:0.5rem">
+                <div class="order-detail-icon">💳</div>
+                <div><strong>Método de pago</strong><br><span class="text-dim">${paymentMethodLabel()}</span></div>
+              </div>
+              ` : ''}
 
               <button class="btn btn-primary btn-block" id="submit-btn" onclick="processAction()" ${checkoutData.seats.length === 0 ? 'disabled' : ''}>
                 ${isPurchase ? '💳 Comprar' : '🎟️ Confirmar Reserva'}
@@ -285,6 +290,12 @@
       if (cardFields) {cardFields.style.display = radio.value === 'card' ? 'block' : 'none';}
     }
 
+    function paymentMethodLabel() {
+      const selected = document.querySelector('input[name="payment-method"]:checked');
+      const labels = { card: 'Tarjeta de crédito/débito', cash: 'Efectivo', pse: 'PSE' };
+      return labels[selected?.value] || 'No seleccionado';
+    }
+
     function setupCardFormatting() {
       const cardInput = document.getElementById('card-number');
       const expiryInput = document.getElementById('card-expiry');
@@ -303,70 +314,48 @@
       }
     }
 
-    function applyCoupon() {
-      async function applyCoupon() {
-      const code = document
-      .getElementById('coupon-input')
-      .value
-      .trim()
-      .toUpperCase();
-
+    async function applyCoupon() {
+      const code = document.getElementById('coupon-input').value.trim().toUpperCase();
       const msgEl = document.getElementById('coupon-message');
 
       if (!code) {
-         msgEl.innerHTML =
-        '<span class="coupon-error">Ingresa un código</span>';
-      return;
-     }
+        msgEl.innerHTML = '<span class="coupon-error">Ingresa un código</span>';
+        return;
+      }
 
       if (couponApplied) {
-         msgEl.innerHTML =
-        '<span class="coupon-error">Ya hay un cupón aplicado</span>';
-     return;
+        msgEl.innerHTML = '<span class="coupon-error">Ya hay un cupón aplicado</span>';
+        return;
       }
 
-     try {
+      try {
         const promo = await API.getPromotion(code);
 
-       if (!promo) {
-        msgEl.innerHTML =
-        '<span class="coupon-error">Código promocional inválido.</span>';
-      return;
-     }
+        if (!promo) {
+          msgEl.innerHTML = '<span class="coupon-error">Código promocional inválido.</span>';
+          return;
+        }
 
-      if (!promo.active) {
-        msgEl.innerHTML =
-        '<span class="coupon-error">El código promocional está inactivo.</span>';
-      return;
+        if (!promo.active) {
+          msgEl.innerHTML = '<span class="coupon-error">El código promocional está inactivo.</span>';
+          return;
+        }
+
+        if (Number(promo.discount) <= 0 || Number(promo.discount) >= 100) {
+          msgEl.innerHTML = '<span class="coupon-error">Descuento no válido.</span>';
+          return;
+        }
+
+        discount = Math.round(checkoutData.total * Number(promo.discount) / 100);
+        couponApplied = true;
+
+        msgEl.innerHTML = `<span class="coupon-success">✓ ${promo.discount}% de descuento aplicado</span>`;
+        renderPage();
+        document.getElementById('coupon-message').innerHTML = `<span class="coupon-success">✓ ${promo.discount}% de descuento aplicado</span>`;
+      } catch (error) {
+        console.error(error);
+        msgEl.innerHTML = '<span class="coupon-error">Error al consultar el código.</span>';
       }
-
-    discount = Math.round(
-      checkoutData.total * Number(promo.discount) / 100
-    );
-
-    couponApplied = true;
-
-    msgEl.innerHTML = 
-      <span class="coupon-success">
-        ✓ ${promo.discount}% de descuento aplicado
-      </span>
-    ;
-
-    renderPage();
-
-    document.getElementById('coupon-message').innerHTML = 
-      <span class="coupon-success">
-        ✓ ${promo.discount}% de descuento aplicado
-      </span>
-    ;
-
-    } catch (error) {
-     console.error(error);
-
-     msgEl.innerHTML =
-      '<span class="coupon-error">Error al consultar el código.</span>';
-    }
-
     }
 
     async function processAction() {
@@ -400,18 +389,37 @@
       btn.textContent = isPurchase ? 'Procesando...' : 'Reservando...';
 
       try {
+        const functionSeats = await API.getFunctionSeats(checkoutData.functionId);
+        for (const seat of checkoutData.seats) {
+          const fSeat = functionSeats.find(fs => fs.seatId === seat.seatId);
+          if (!fSeat || fSeat.status !== 'available') {
+            showToast(`El asiento ${seat.seatCode} ya no está disponible`, 'error');
+            btn.disabled = false;
+            btn.textContent = isPurchase ? '💳 Comprar' : '🎟️ Confirmar Reserva';
+            return;
+          }
+        }
+
         const total = checkoutData.total - discount;
+
+        const seatsData = checkoutData.seats.map(s => ({
+          seatCode: s.seatCode,
+          type: s.type || 'standard',
+          price: s.price
+        }));
 
         if (isPurchase) {
           const purchase = await API.createPurchase({
             userId: Auth.getUserId(),
             functionId: checkoutData.functionId,
             movieId: checkoutData.movieId || null,
+            seats: seatsData,
             seatIds: checkoutData.seats.map(s => s.seatId),
             seatCodes: checkoutData.seats.map(s => s.seatCode),
             quantity: checkoutData.seats.length,
-            total: total,
+            subtotal: checkoutData.total,
             discount: discount,
+            total: total,
             status: 'completed',
             code: generateCode('PUR'),
             paymentMethod,
@@ -432,10 +440,13 @@
             functionId: checkoutData.functionId,
             movieId: checkoutData.movieId || null,
             movieTitle: checkoutData.movieTitle || 'Pelicula',
+            seats: seatsData,
             seatIds: checkoutData.seats.map(s => s.seatId),
             quantity: checkoutData.seats.length,
+            subtotal: checkoutData.total,
             total: total,
             discount: discount,
+            paymentMethod,
             code: generateCode('TKT'),
             status: 'active',
             createdAt: new Date().toISOString()
@@ -451,11 +462,13 @@
             functionId: checkoutData.functionId,
             movieId: checkoutData.movieId || null,
             movieTitle: checkoutData.movieTitle || 'Pelicula',
+            seats: seatsData,
             seatIds: checkoutData.seats.map(s => s.seatId),
             seatCodes: checkoutData.seats.map(s => s.seatCode),
             quantity: checkoutData.seats.length,
-            total: total,
+            subtotal: checkoutData.total,
             discount: discount,
+            total: total,
             code: generateCode('RES'),
             status: 'RESERVADA',
             buyerName: name,
@@ -489,5 +502,4 @@
         btn.textContent = isPurchase ? '💳 Comprar' : '🎟️ Confirmar Reserva';
       }
     }
-  }
     loadCheckout();
